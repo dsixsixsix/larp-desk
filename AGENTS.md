@@ -15,7 +15,7 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Repo overview
 
-This is the tldraw monorepo, an infinite canvas SDK for React applications. It is organized with Yarn workspaces.
+This is UnoCode, a collaborative whiteboard built on the tldraw SDK. It started as a fork of the tldraw monorepo and keeps its Yarn workspace layout: the SDK packages sit alongside the app, and both are built from source. It does not track tldraw upstream — the parts of the monorepo the app doesn't use (the examples and docs sites, the VS Code extension, the starter templates) have been removed.
 
 Core packages:
 
@@ -28,13 +28,13 @@ Core packages:
 - `packages/utils` and `packages/validate` - shared utilities and validation helpers
 - `packages/assets` - icons, fonts, translations, and bundled assets
 
-Apps and examples:
+The app:
 
-- `apps/examples` - SDK examples and demos; the main place for example development
-- `apps/docs` - documentation site at tldraw.dev
-- `apps/dotcom` - tldraw.com app and workers
-- `apps/vscode` - VS Code extension
-- `templates` - starter templates for supported frameworks
+- `apps/dotcom/client` - the UnoCode app: boards, presence, voice chat, document viewer and editor
+- `apps/dotcom/sync-worker` - Cloudflare worker; hosts the presence and WebRTC signalling durable object
+- `apps/dotcom/*-worker` - the remaining Cloudflare workers (assets, image resizing)
+
+Most of the project's own code is under `apps/dotcom/client/src/tla`.
 
 ## Setup
 
@@ -48,20 +48,18 @@ npm i -g corepack && yarn
 
 Development:
 
-- `yarn dev` - start the examples app at localhost:5420
+- `yarn dev` - start the app and its worker
 - `yarn dev-app` - start the tldraw.com client app
-- `yarn dev-docs` - start the docs site
-- `yarn dev-vscode` - start VS Code extension development
-- `yarn dev-template <template name>` - run a template
 
-Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
+Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace dotcom dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve — fine once the assets exist, but not on a fresh checkout. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
+
+Voice chat needs a secure context: `localhost` works, a plain `http://` LAN address does not.
 
 Build:
 
 - `yarn build` - build all changed packages incrementally
 - `yarn build-package` - build SDK packages only
 - `yarn build-app` - build the tldraw.com client app
-- `yarn build-docs` - build the docs site
 
 Testing:
 
@@ -69,8 +67,7 @@ Testing:
 - `yarn test run` in a workspace - run tests once
 - `yarn test run --grep "pattern"` in a workspace - run matching tests
 - `yarn vitest` - run all tests across the repo; slow, avoid unless necessary
-- `yarn e2e` - run examples e2e tests
-- `yarn e2e-dotcom` - run tldraw.com e2e tests
+- `yarn e2e-dotcom` - run the app's e2e tests
 
 Code quality:
 
@@ -87,7 +84,6 @@ Code quality:
 - For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `yarn typecheck` from the repo root.
 - For public API changes, run `yarn api-check` and include intentional API report updates.
 - For asset changes, run `yarn refresh-assets` or `yarn typecheck` so generated assets stay current.
-- For docs changes, run the narrow docs checks or docs build only when the change affects generated content, MDX behavior, or site structure.
 - For e2e behavior changes, run the smallest relevant e2e suite and update snapshots only when behavior intentionally changed.
 
 ## Architecture notes
@@ -129,30 +125,23 @@ Store and schema:
 
 - Use `packages/editor` for core editor primitives, geometry, managers, and UI-free behavior.
 - Use `packages/tldraw` for default shapes, default tools, UI, and integration tests that need the full SDK.
-- Use `apps/examples` for runnable SDK examples and demonstrations.
-- Use `apps/docs/content` for documentation articles and release notes.
-- Use `apps/dotcom/client` for tldraw.com frontend behavior.
+- Use `apps/dotcom/client` for app behavior; most of it lives under `src/tla`.
 - Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
-- Use `templates` for starter project changes.
 
 ## Testing guidance
 
 - Unit tests live alongside source files as `*.test.ts`.
 - Integration tests commonly live in `packages/tldraw/src/test/`.
-- E2E tests live in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`.
+- E2E tests live in `apps/dotcom/client/e2e/`.
 - Test in `packages/tldraw` when default shapes, tools, bindings, or UI are involved.
 - Test in `packages/editor` for core editor behavior that should not depend on default shapes or UI.
 - Prefer comparing whole objects in assertions when that gives a clearer failure than checking fields one by one.
 - See `skills/write-unit-tests/` and `skills/write-e2e-tests/` for detailed test patterns.
 
-## Documentation and examples
+## Documentation
 
-- Docs live in `apps/docs/content/`.
-- Examples live in `apps/examples/src/examples/`.
-- Example folders use lowercase kebab-case names.
-- Example README frontmatter drives the examples site; keep titles and descriptions sentence case.
-- Update docs or examples when an API or user-facing behavior changes.
-- See `skills/write-docs/`, `skills/write-example/`, and `skills/write-release-notes/` for task-specific guidance.
+- `README.md` is the project's front page; keep it current when user-facing behavior changes.
+- Narrative that spans files belongs in a doc with a short pointer from the code.
 
 ## Skills
 
@@ -203,9 +192,9 @@ When writing comments:
 
 - Don't restate the code (`/** Get the toolbar */` above `getToolbar()`), narrate it (`// Delete the shapes` above `editor.deleteShapes()`), add section banners, list call sites, or write `@param`/`@returns` that only repeat the signature.
 - State a rationale once where the shared thing lives; don't copy it across sibling call sites.
-- Keep comments shorter than the code they explain. Narrative that spans files belongs in a doc (`README.md`, `SPEC.md`, `apps/docs/content/`) with a short pointer from the code.
+- Keep comments shorter than the code they explain. Narrative that spans files belongs in a doc (`README.md`, `SPEC.md`) with a short pointer from the code.
 - Always keep: non-obvious invariants, issue numbers and provenance, constants nobody should tune blindly, diagrams, and enumerated cases the code must not break.
-- In `packages/*`, doc comments on the `@public` surface become the API reference; density there is expected. In `apps/*` and `templates/*`, keep comments sparse.
+- In `packages/*`, doc comments on the `@public` surface become the API reference; density there is expected. In `apps/*`, keep comments sparse.
 
 ## Writing style
 

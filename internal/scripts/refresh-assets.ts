@@ -610,12 +610,6 @@ async function createVersionFiles() {
 	await writeCodeFile(
 		'internal/scripts/refresh-assets.ts',
 		'typescript',
-		join(REPO_ROOT, 'apps', 'docs', 'version.ts'),
-		file
-	)
-	await writeCodeFile(
-		'internal/scripts/refresh-assets.ts',
-		'typescript',
 		join(REPO_ROOT, 'apps', 'dotcom', 'client', 'version.ts'),
 		file
 	)

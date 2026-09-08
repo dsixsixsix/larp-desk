@@ -27,26 +27,10 @@ const config = {
 				'build-i18n': {},
 			},
 			workspaceOverrides: {
-				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'packages/*': {
 					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
-					},
-				},
-				'apps/docs': {
-					runsAfter: { 'build-api': { in: 'all-packages' } },
-					cache: {
-						inputs: [
-							'app/**/*',
-							'api/**/*',
-							'components/**/*',
-							'public/**/*',
-							'scrips/**/*',
-							'styles/**/*',
-							'types/**/*',
-							'utils/**/*',
-						],
 					},
 				},
 			},
@@ -55,9 +39,6 @@ const config = {
 			execution: 'independent',
 			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
 			cache: 'none',
-			workspaceOverrides: {
-				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
-			},
 		},
 		// predev/prebuild are the css-copy scripts. They write generated, gitignored files
 		// (tldraw.css, commenting.css, ...) that lazy doesn't track as outputs, so a cache hit
