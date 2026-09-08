@@ -1,0 +1,406 @@
+import {
+	BindingOnChangeOptions,
+	BindingOnCreateOptions,
+	BindingOnShapeChangeOptions,
+	BindingOnShapeIsolateOptions,
+	BindingUtil,
+	Editor,
+	Geometry2dFilters,
+	IndexKey,
+	TLArrowBinding,
+	TLArrowBindingProps,
+	TLArrowShape,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	TLShapePartial,
+	Vec,
+	approximately,
+	arrowBindingMigrations,
+	arrowBindingProps,
+	getIndexAbove,
+	getIndexBetween,
+	intersectLineSegmentCircle,
+} from '@tldraw/editor'
+import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
+import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
+
+/**
+ * @public
+ */
+export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
+	static override type = 'arrow'
+
+	static override props = arrowBindingProps
+	static override migrations = arrowBindingMigrations
+
+	override getDefaultProps(): Partial<TLArrowBindingProps> {
+		return {
+			isPrecise: false,
+			isExact: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		}
+	}
+
+	// when the binding itself changes
+	override onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void {
+		const arrow = this.editor.getShape(binding.fromId) as TLArrowShape | undefined
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
+	}
+
+	// when the binding itself changes
+	override onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void {
+		const arrow = this.editor.getShape(bindingAfter.fromId) as TLArrowShape | undefined
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
+	}
+
+	// when the arrow itself changes
+	override onAfterChangeFromShape({
+		shapeBefore,
+		shapeAfter,
+		reason,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When translating arrows together with their bound shapes, only x/y changes.
+		// In this case, bindings remain valid and no reparenting is needed.
+		// This is a significant performance optimization when moving many bound shapes.
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
+		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
+	}
+
+	// when the shape an arrow is bound to changes
+	override onAfterChangeToShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+		reason,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
+		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
+		// to the new geometry.
+		if (
+			binding.props.isPrecise &&
+			shapeBefore.type === 'geo' &&
+			shapeAfter.type === 'geo' &&
+			shapeBefore.props.geo !== shapeAfter.props.geo &&
+			this.editor.isIn('select.idle') &&
+			!this.editor.isReplayingHistory()
+		) {
+			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
+		}
+
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
+		reparentArrow(this.editor, binding.fromId)
+	}
+
+	// when the arrow is isolated we need to update its (x,y) positions
+	override onBeforeIsolateFromShape({
+		binding,
+	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
+		// during undo/redo the history diff already contains the arrow's correct
+		// state, so adjusting the terminal here would corrupt the replay
+		if (this.editor.isReplayingHistory()) return
+
+		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
+		if (!arrow) return
+		updateArrowTerminal({
+			editor: this.editor,
+			arrow,
+			terminal: binding.props.terminal,
+		})
+	}
+}
+
+/**
+ * A precise arrow binding stores its anchor as a normalized point (0–1) within the bound shape's
+ * geometry bounds. If the shape's geometry changes (for example, when its geo type changes from a
+ * rectangle to a triangle) the anchor can end up outside the new outline, making the arrow appear to
+ * float off the shape. When that happens, move the anchor to the nearest point on the new geometry.
+ */
+function updateBindingAnchorIfOutsideShape(
+	editor: Editor,
+	binding: TLArrowBinding,
+	boundShape: TLShape
+) {
+	const geometry = editor.getShapeGeometry(boundShape)
+	// "Inside" only makes sense for closed geometry (e.g. an open line has no interior to fall out
+	// of), so leave those bindings alone.
+	if (!geometry.isClosed) return
+
+	const { point, size } = geometry.bounds
+	if (size.x === 0 || size.y === 0) return
+
+	// The anchor's current position in the bound shape's local geometry space.
+	const anchorPoint = Vec.Add(point, Vec.MulV(binding.props.normalizedAnchor, size))
+
+	// If the anchor still lands on or inside the shape, there's nothing to do.
+	if (geometry.hitTestPoint(anchorPoint, 0, true)) return
+
+	// Otherwise re-snap it to the closest point on the new outline and store it back as a normalized
+	// anchor.
+	const nearest = geometry.nearestPoint(anchorPoint, Geometry2dFilters.EXCLUDE_LABELS)
+	editor.updateBinding({
+		id: binding.id,
+		type: binding.type,
+		props: {
+			normalizedAnchor: {
+				x: (nearest.x - point.x) / size.x,
+				y: (nearest.y - point.y) / size.y,
+			},
+		},
+	})
+}
+
+function reparentArrow(editor: Editor, arrowId: TLShapeId) {
+	const arrow = editor.getShape<TLArrowShape>(arrowId)
+	if (!arrow) return
+	const bindings = getArrowBindings(editor, arrow)
+	const { start, end } = bindings
+	const startShape = start ? editor.getShape(start.toId) : undefined
+	const endShape = end ? editor.getShape(end.toId) : undefined
+
+	const parentPageId = editor.getAncestorPageId(arrow)
+	if (!parentPageId) return
+
+	let nextParentId: TLParentId
+	if (startShape && endShape) {
+		// If arrow has two bindings, parent it to the closest common ancestor of the
+		// bound shapes. When one bound shape is a frame-like ancestor-or-self of the
+		// other, use that frame-like shape itself instead of its parent.
+		nextParentId =
+			getCommonFrameLikeBindingAncestor(editor, startShape, endShape) ??
+			editor.findCommonAncestor([startShape, endShape]) ??
+			parentPageId
+	} else if (startShape || endShape) {
+		const bindingParentId = (startShape || endShape)?.parentId
+		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
+		if (bindingParentId && bindingParentId === arrow.parentId) {
+			nextParentId = arrow.parentId
+		} else {
+			// if arrow has one binding, keep arrow on its own page
+			nextParentId = parentPageId
+		}
+	} else {
+		return
+	}
+
+	if (nextParentId && nextParentId !== arrow.parentId) {
+		editor.reparentShapes([arrowId], nextParentId)
+	}
+
+	const reparentedArrow = editor.getShape<TLArrowShape>(arrowId)
+	if (!reparentedArrow) throw Error('no reparented arrow')
+
+	const startSibling = editor.getShapeNearestSibling(reparentedArrow, startShape)
+	const endSibling = editor.getShapeNearestSibling(reparentedArrow, endShape)
+
+	let highestSibling: TLShape | undefined
+
+	if (startSibling && endSibling) {
+		highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
+	} else if (startSibling && !endSibling) {
+		highestSibling = startSibling
+	} else if (endSibling && !startSibling) {
+		highestSibling = endSibling
+	} else {
+		return
+	}
+
+	let finalIndex: IndexKey
+
+	const higherSiblings = editor
+		.getSortedChildIdsForParent(highestSibling.parentId)
+		.map((id) => editor.getShape(id)!)
+		.filter((sibling) => sibling.index > highestSibling!.index)
+
+	if (higherSiblings.length) {
+		// there are siblings above the highest bound sibling, we need to
+		// insert between them.
+
+		// if the next sibling is also a bound arrow though, we can end up
+		// all fighting for the same indexes. so lets find the next
+		// non-arrow sibling...
+		const nextHighestNonArrowSibling = higherSiblings.find((sibling) => sibling.type !== 'arrow')
+
+		if (
+			// ...then, if we're above the last shape we want to be above...
+			reparentedArrow.index > highestSibling.index &&
+			// ...but below the next non-arrow sibling...
+			(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
+		) {
+			// ...then we're already in the right place. no need to update!
+			return
+		}
+
+		// otherwise, we need to find the index between the highest sibling
+		// we want to be above, and the next highest sibling we want to be
+		// below:
+		finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
+	} else {
+		// if there are no siblings above us, we can just get the next index:
+		finalIndex = getIndexAbove(highestSibling.index)
+	}
+
+	if (finalIndex !== reparentedArrow.index) {
+		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
+	}
+}
+
+function getCommonFrameLikeBindingAncestor(
+	editor: Editor,
+	startShape: TLShape,
+	endShape: TLShape
+): TLShapeId | undefined {
+	let ancestor: TLShape | undefined
+	if (startShape.id === endShape.id) {
+		ancestor = startShape
+	} else if (editor.hasAncestor(startShape, endShape.id)) {
+		ancestor = endShape
+	} else if (editor.hasAncestor(endShape, startShape.id)) {
+		ancestor = startShape
+	}
+
+	return ancestor && editor.isShapeFrameLike(ancestor) ? ancestor.id : undefined
+}
+
+function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
+	const bindings = getArrowBindings(editor, arrow)
+	// if the shape is an arrow and its bound shape is on another page
+	// or was deleted, unbind it
+	for (const handle of ['start', 'end'] as const) {
+		const binding = bindings[handle]
+		if (!binding) continue
+		const boundShape = editor.getShape(binding.toId)
+		const isShapeInSamePageAsArrow =
+			editor.getAncestorPageId(arrow) === editor.getAncestorPageId(boundShape)
+		if (!boundShape || !isShapeInSamePageAsArrow) {
+			updateArrowTerminal({ editor, arrow, terminal: handle, unbind: true })
+		}
+	}
+
+	// always check the arrow parents
+	reparentArrow(editor, arrow.id)
+}
+
+/** @internal */
+export function updateArrowTerminal({
+	editor,
+	arrow,
+	terminal,
+	unbind = false,
+	useHandle = false,
+}: {
+	editor: Editor
+	arrow: TLArrowShape
+	terminal: 'start' | 'end'
+	unbind?: boolean
+	useHandle?: boolean
+}) {
+	const info = getArrowInfo(editor, arrow)
+	if (!info) {
+		throw new Error('expected arrow info')
+	}
+
+	const startPoint = getValidTerminalPoint(
+		useHandle ? info.start.handle : info.start.point,
+		arrow.props.start
+	)
+	const endPoint = getValidTerminalPoint(
+		useHandle ? info.end.handle : info.end.point,
+		arrow.props.end
+	)
+	const point = terminal === 'start' ? startPoint : endPoint
+
+	const update = {
+		id: arrow.id,
+		type: 'arrow',
+		props: {
+			[terminal]: { x: point.x, y: point.y },
+			bend: arrow.props.bend,
+		},
+	} satisfies TLShapePartial<TLArrowShape>
+
+	// fix up the bend:
+	if (info.type === 'arc') {
+		// find the new start/end points of the resulting arrow
+		const newStart =
+			terminal === 'start'
+				? startPoint
+				: getValidTerminalPoint(info.start.handle, arrow.props.start)
+		const newEnd =
+			terminal === 'end' ? endPoint : getValidTerminalPoint(info.end.handle, arrow.props.end)
+		const newMidPoint = Vec.Med(newStart, newEnd)
+		const arrowDirection = Vec.Sub(newStart, newEnd)
+		if (approximately(Vec.Len2(arrowDirection), 0)) {
+			editor.updateShape(update)
+			if (unbind) {
+				removeArrowBinding(editor, arrow, terminal)
+			}
+			return
+		}
+
+		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
+		// find the new mid-point
+		const lineSegment = arrowDirection
+			.per()
+			.uni()
+			.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
+		const targetPoint = Vec.Add(newMidPoint, lineSegment)
+		if (
+			!Vec.IsFinite(info.handleArc.center) ||
+			!Number.isFinite(info.handleArc.radius) ||
+			!Vec.IsFinite(targetPoint)
+		) {
+			editor.updateShape(update)
+			if (unbind) {
+				removeArrowBinding(editor, arrow, terminal)
+			}
+			return
+		}
+
+		// find the intersections with the old arrow arc:
+		const intersections = intersectLineSegmentCircle(
+			info.handleArc.center,
+			targetPoint,
+			info.handleArc.center,
+			info.handleArc.radius
+		)
+
+		if (intersections?.length) {
+			const intersection = intersections.reduce((closest, candidate) =>
+				Vec.Dist2(candidate, targetPoint) < Vec.Dist2(closest, targetPoint) ? candidate : closest
+			)
+			const bend = Vec.Dist(newMidPoint, intersection) * Math.sign(arrow.props.bend)
+			// use `approximately` to avoid endless update loops
+			if (!approximately(bend, update.props.bend)) {
+				update.props.bend = bend
+			}
+		}
+	}
+
+	editor.updateShape(update)
+	if (unbind) {
+		removeArrowBinding(editor, arrow, terminal)
+	}
+}
+
+function getValidTerminalPoint(
+	point: { x: number; y: number },
+	fallback: { x: number; y: number }
+) {
+	return Vec.From(Vec.IsFinite(point) ? point : fallback)
+}

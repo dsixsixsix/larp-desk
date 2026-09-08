@@ -1,0 +1,89 @@
+.toggle {
+	background-color: var(--tl-color-background);
+	border-radius: var(--uno-radius-control);
+	height: 36px;
+	width: 36px;
+	min-width: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.toggle[aria-pressed='true'] {
+	color: var(--tl-color-text-0);
+	background-color: var(--tl-color-muted-2);
+}
+
+@media (hover: hover) {
+	.toggle:hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+/* Portaled to document.body (see TlaActivityLogButton) and positioned via inline top/right, so
+   it floats over the canvas instead of being clipped by .tlui-layout__top__right's overflow. */
+.panel {
+	position: fixed;
+	pointer-events: all;
+	/* Above the style panel, which shares this corner of the screen (see .tlui-style-panel). */
+	z-index: 301;
+	width: 300px;
+	max-height: 360px;
+	overflow-y: auto;
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-low-border);
+	border-radius: var(--uno-radius-control);
+	box-shadow:
+		0 1px 2px rgb(0 0 0 / 15%),
+		0 8px 24px rgb(0 0 0 / 18%);
+	padding: 4px;
+	box-sizing: border-box;
+}
+
+.empty {
+	padding: 10px;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.entry {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 7px 10px;
+	border-radius: var(--uno-radius-control);
+	font-size: 12px;
+	color: var(--tl-color-text-0);
+}
+
+.entryMain {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.entryMessage {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.entryTime {
+	flex: 0 0 auto;
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+}
+
+.entryUser {
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

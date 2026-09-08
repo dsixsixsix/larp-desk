@@ -1,0 +1,2587 @@
+{
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accept invitation"
+    }
+  ],
+  "00cd7be4cb": [
+    {
+      "type": 0,
+      "value": "Mute"
+    }
+  ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "We’re working on support for files from "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "035c7f669a": [
+    {
+      "type": 0,
+      "value": "Test microphone"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Still having trouble? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "0490b97de6": [
+    {
+      "type": 0,
+      "value": "Talking"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Invite teammates"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mentioned you"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07b45f61c6": [
+    {
+      "type": 0,
+      "value": "The microphone is being used by another app. Close it and try again."
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Untitled file"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Rate limit exceeded, try again later."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Account"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Can’t open "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " files yet"
+    }
+  ],
+  "099f95b585": [
+    {
+      "type": 0,
+      "value": "Hold to talk (V)"
+    }
+  ],
+  "0a0afb3424": [
+    {
+      "type": 0,
+      "value": "Switch to dark theme"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "File"
+    }
+  ],
+  "0b4f0a9479": [
+    {
+      "type": 0,
+      "value": "Couldn't load this file."
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "File menu"
+    }
+  ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Something went wrong loading this invite. Please try again."
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Send feedback"
+    }
+  ],
+  "0fef24d5ea": [
+    {
+      "type": 0,
+      "value": "Copy link to this board"
+    }
+  ],
+  "105b296a83": [
+    {
+      "type": 0,
+      "value": "Pause"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copy to personal workspace"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Publish"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Unpin file"
+    }
+  ],
+  "134eb0a6cd": [
+    {
+      "type": 0,
+      "value": "Play back"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Export as"
+    }
+  ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Notification options"
+    }
+  ],
+  "15effbebe8": [
+    {
+      "type": 0,
+      "value": "UnoCode"
+    }
+  ],
+  "160893308c": [
+    {
+      "type": 0,
+      "value": "This browser can't choose an output device — using the system default."
+    }
+  ],
+  "1621ceeec7": [
+    {
+      "type": 0,
+      "value": "Open UnoCode"
+    }
+  ],
+  "16f665a458": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " more"
+    }
+  ],
+  "1712e980c7": [
+    {
+      "type": 0,
+      "value": "Voice chat"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Create file"
+    }
+  ],
+  "1c27204723": [
+    {
+      "type": 0,
+      "value": "Jane Doe"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Today"
+    }
+  ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "A workspace must keep at least one owner. Make someone else an owner first."
+    }
+  ],
+  "204ebb2cb0": [
+    {
+      "type": 0,
+      "value": "Browsers only allow microphone access over https or on localhost. Open the app on one of those."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Workspace name"
+    }
+  ],
+  "221e705c06": [
+    {
+      "type": 0,
+      "value": "Your name"
+    }
+  ],
+  "22cc65fdfc": [
+    {
+      "type": 0,
+      "value": "Speaker"
+    }
+  ],
+  "231246f83c": [
+    {
+      "type": 0,
+      "value": "Playing…"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Create a free account to continue."
+    }
+  ],
+  "273b65a875": [
+    {
+      "type": 0,
+      "value": "The address you signed in with. Change it from your sign-in provider."
+    }
+  ],
+  "273b6b8e5c": [
+    {
+      "type": 0,
+      "value": "Microphone access was denied. Allow it in your browser settings to test."
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented on your board"
+    }
+  ],
+  "27a9427cc1": [
+    {
+      "type": 0,
+      "value": "Enter your name and email so your work is attributed to you."
+    }
+  ],
+  "28d0edd045": [
+    {
+      "type": 0,
+      "value": "Low"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Upload failed"
+    }
+  ],
+  "2a1167f869": [
+    {
+      "type": 0,
+      "value": "Welcome to your workspace"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Search..."
+    }
+  ],
+  "2b42f15a18": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " person"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " on this board"
+    }
+  ],
+  "2b81bb9b3d": [
+    {
+      "type": 0,
+      "value": "Frames"
+    }
+  ],
+  "2c539260ad": [
+    {
+      "type": 0,
+      "value": "Change or withdraw the analytics cookie choice you made on your first visit."
+    }
+  ],
+  "2c9f79d160": [
+    {
+      "type": 0,
+      "value": "Close player"
+    }
+  ],
+  "2cc9187af1": [
+    {
+      "type": 0,
+      "value": "Microphone"
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
+    }
+  ],
+  "2df04e58c1": [
+    {
+      "type": 0,
+      "value": "Noise suppression"
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Include link to current file"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenerate invite link"
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "You need to sign in to view this file."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Highlight Missing"
+    }
+  ],
+  "31a5bcc383": [
+    {
+      "type": 0,
+      "value": "Something went wrong. Try again."
+    }
+  ],
+  "31fde7b05a": [
+    {
+      "type": 0,
+      "value": "Preview"
+    }
+  ],
+  "333cff4fa4": [
+    {
+      "type": 0,
+      "value": "Higher settings cut more background noise, but can clip the start of quiet speech."
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Please try refreshing the page."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "34e2d1989a": [
+    {
+      "type": 0,
+      "value": "Video"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Manage"
+    }
+  ],
+  "352a772d77": [
+    {
+      "type": 0,
+      "value": "Reset local data"
+    }
+  ],
+  "36ee841ed2": [
+    {
+      "type": 0,
+      "value": "No microphone was found. Check that one is plugged in."
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Remove member"
+    }
+  ],
+  "3a44ce48c3": [
+    {
+      "type": 0,
+      "value": "A new version of UnoCode is available. Please reload the page to continue."
+    }
+  ],
+  "3a7eb63385": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your files and collaborate with your teammates."
+    }
+  ],
+  "3b0d2f8fda": [
+    {
+      "type": 0,
+      "value": "Thanks for helping us improve UnoCode!"
+    }
+  ],
+  "3b470c1f6a": [
+    {
+      "type": 0,
+      "value": "No matches"
+    }
+  ],
+  "3bb3e8c8a2": [
+    {
+      "type": 0,
+      "value": "Frame"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continue with email"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Unable to publish the changes."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Pinned"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Accept all"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Unsupported Mermaid diagram"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Color theme"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Contact the owner to request access."
+    }
+  ],
+  "43e5f82016": [
+    {
+      "type": 0,
+      "value": "Edit the document directly. The copy you download keeps text, headings, lists, tables and images — anything else Word stored (footnotes, comments, page layout) is not carried over."
+    }
+  ],
+  "4436eeb466": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for UnoCode? Let us know! Fill out this form and we will follow up over email if needed."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Get help on Discord"
+    }
+  ],
+  "454761c561": [
+    {
+      "type": 0,
+      "value": "Unmute"
+    }
+  ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Accept terms of use"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "To continue editing please copy the file to your files."
+    }
+  ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pin file"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Name"
+    }
+  ],
+  "4b0e37a2df": [
+    {
+      "type": 0,
+      "value": "This version of UnoCode is no longer supported."
+    }
+  ],
+  "4bc52f0db2": [
+    {
+      "type": 0,
+      "value": "The microphone is muted until you hold the talk key (V)."
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "This site uses cookies to make the app work and to collect analytics."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Reload"
+    }
+  ],
+  "4fca794da0": [
+    {
+      "type": 0,
+      "value": "you@example.com"
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Unsupported diagram, will generate SVG instead"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Unable to unpublish the file."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Page menu"
+    }
+  ],
+  "5289bf1575": [
+    {
+      "type": 0,
+      "value": "Revert"
+    }
+  ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Unread"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "This file is now read-only"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Collaborator limit reached"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " unread"
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Still having trouble? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Report a problem"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5587e2760a": [
+    {
+      "type": 0,
+      "value": "Board name"
+    }
+  ],
+  "55b890b4cd": [
+    {
+      "type": 0,
+      "value": "Everything you make here lives in this browser, and stays until you clear it. This deletes every board and its contents, and asks for your name again."
+    }
+  ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Create a workspace"
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Privacy policy"
+    }
+  ],
+  "5863d63d13": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": "s"
+    }
+  ],
+  "58a9e98423": [
+    {
+      "type": 0,
+      "value": "Nothing has happened yet"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Share"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Old browser detected. Please update your browser to use this app."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "My workspace"
+    }
+  ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Unable to connect"
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "We failed to upload some of the content you created before you signed in."
+    }
+  ],
+  "5d331dad52": [
+    {
+      "type": 0,
+      "value": "Push to talk"
+    }
+  ],
+  "5de2f0329f": [
+    {
+      "type": 0,
+      "value": "Board outline"
+    }
+  ],
+  "5f02f05c74": [
+    {
+      "type": 0,
+      "value": "Loading…"
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Feedback submitted"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
+  "606ec778e2": [
+    {
+      "type": 0,
+      "value": "Recording… say something"
+    }
+  ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "You’re all caught up."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Sign in to comment"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Later"
+    }
+  ],
+  "61ebf2173b": [
+    {
+      "type": 0,
+      "value": "This file type can't be previewed yet. Download it to view the contents."
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Someone reacted to your comment"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people reacted to your comment"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Older"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "you"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Refresh"
+    }
+  ],
+  "655d20c1ca": [
+    {
+      "type": 0,
+      "value": "High"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Something went wrong"
+    }
+  ],
+  "6686793f54": [
+    {
+      "type": 0,
+      "value": "Shown next to your cursor when you work with other people."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "New file"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Enter your email address"
+    }
+  ],
+  "686e697538": [
+    {
+      "type": 0,
+      "value": "Create"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Delete workspace"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Help"
+    }
+  ],
+  "6cfcb34259": [
+    {
+      "type": 0,
+      "value": "About UnoCode"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "You do not have the necessary permissions to perform this action."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "This week"
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Please reload the page"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No files found"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Mark all as read"
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "No access"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Manage cookies"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Please reload"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Invalid request."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Got it"
+    }
+  ],
+  "795ecaf4a3": [
+    {
+      "type": 0,
+      "value": "This anonymous multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Default"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "User manual"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Restore version"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Forget"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Publish changes"
+    }
+  ],
+  "7dce122004": [
+    {
+      "type": 0,
+      "value": "Edit"
+    }
+  ],
+  "7e6c11c036": [
+    {
+      "type": 0,
+      "value": "Join voice chat"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Forget file"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "New workspace"
+    }
+  ],
+  "811ac93e80": [
+    {
+      "type": 0,
+      "value": "No microphone found"
+    }
+  ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to forget "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "81fd6ff1f2": [
+    {
+      "type": 0,
+      "value": "Microphone access was denied. Allow it in your browser settings."
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Comments"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Member"
+    }
+  ],
+  "85fb277771": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for UnoCode? Let us know!"
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Added "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr files."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Rename file"
+    }
+  ],
+  "874957956c": [
+    {
+      "type": 0,
+      "value": "Built on the tldraw SDK"
+    }
+  ],
+  "87f8a6ab85": [
+    {
+      "type": 0,
+      "value": "Medium"
+    }
+  ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "You are already a member of this workspace"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "This invite link has expired"
+    }
+  ],
+  "8916ab0bb1": [
+    {
+      "type": 0,
+      "value": "Boards"
+    }
+  ],
+  "8b481ddfe4": [
+    {
+      "type": 0,
+      "value": "Local data"
+    }
+  ],
+  "8b97e99237": [
+    {
+      "type": 0,
+      "value": "Search text and files on the board"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Check your email for a verification code."
+    }
+  ],
+  "8d19becea6": [
+    {
+      "type": 0,
+      "value": "Delete every board and start over?"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Shared with you"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Rate limited"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
+  "902e3b029f": [
+    {
+      "type": 0,
+      "value": "Open mic"
+    }
+  ],
+  "902f2ecbcb": [
+    {
+      "type": 0,
+      "value": "Input volume"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Rename"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Files"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Sign in with Google"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "This month"
+    }
+  ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Terms of Use"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Light"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Clear search"
+    }
+  ],
+  "9a889711e5": [
+    {
+      "type": 0,
+      "value": "This file's contents aren't stored in this browser."
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Didn’t receive a code? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Resend"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Delete file"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "You appear to be offline. Check your connection and try again."
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publish this file"
+    }
+  ],
+  "9dffbf69ff": [
+    {
+      "type": 0,
+      "value": "Text"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Not found"
+    }
+  ],
+  "9e26471d35": [
+    {
+      "type": 0,
+      "value": "jane@example.com"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Opt out"
+    }
+  ],
+  "9ea038d530": [
+    {
+      "type": 0,
+      "value": "This is the name shown on your cursor to everyone on the board."
+    }
+  ],
+  "9eff0a15b6": [
+    {
+      "type": 0,
+      "value": "Switch workspace or board"
+    }
+  ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "a0bfb8e59e": [
+    {
+      "type": 0,
+      "value": "Continue"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Export the content as a .tldr file: Select 'Download' in the top left menu."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Padding"
+    }
+  ],
+  "a120f28da7": [
+    {
+      "type": 0,
+      "value": "The microphone is live, and the noise gate decides what is sent."
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Dark"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "The file you are looking for does not exist."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Export image"
+    }
+  ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notifications"
+    }
+  ],
+  "a3ab761dcc": [
+    {
+      "type": 1,
+      "value": "workspace"
+    },
+    {
+      "type": 0,
+      "value": " / "
+    },
+    {
+      "type": 1,
+      "value": "board"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookie policy"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Submit"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Leave"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Anyone with the link"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "File is getting large"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Background"
+    }
+  ],
+  "aa56a2e65d": [
+    {
+      "type": 0,
+      "value": "Elements"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Create workspace"
+    }
+  ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Someone"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "File limit reached"
+    }
+  ],
+  "ab1be8fff4": [
+    {
+      "type": 0,
+      "value": "Voice chat couldn't start"
+    }
+  ],
+  "acf84eea1e": [
+    {
+      "type": 0,
+      "value": "Link copied"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Last published "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Guest user"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " replied"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "All"
+    }
+  ],
+  "b22f0418e8": [
+    {
+      "type": 0,
+      "value": "Audio"
+    }
+  ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerate"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "File is full"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Email address"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Enable invites"
+    }
+  ],
+  "b5a7adde1a": [
+    {
+      "type": 0,
+      "value": "Description"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Sign in"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Owner"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Copy link"
+    }
+  ],
+  "b78c0b8778": [
+    {
+      "type": 0,
+      "value": "Leave voice chat"
+    }
+  ],
+  "ba840f74cc": [
+    {
+      "type": 0,
+      "value": "This file can't be played."
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Invites are disabled"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploading .tldr file…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploading "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " of "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr files…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Shared by "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bc9e270b7b": [
+    {
+      "type": 0,
+      "value": "Display name"
+    }
+  ],
+  "bf49a2af93": [
+    {
+      "type": 0,
+      "value": "Before you start"
+    }
+  ],
+  "c04b545bf3": [
+    {
+      "type": 0,
+      "value": "Starting…"
+    }
+  ],
+  "c08969ef08": [
+    {
+      "type": 0,
+      "value": "System default"
+    }
+  ],
+  "c0c07aab0b": [
+    {
+      "type": 0,
+      "value": "+"
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Manage workspace"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Learn more about sharing."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Unable to publish the file."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Open"
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Essential cookies"
+    }
+  ],
+  "c65304f107": [
+    {
+      "type": 0,
+      "value": "Always on"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Long String"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invite"
+    }
+  ],
+  "c6f16003f2": [
+    {
+      "type": 0,
+      "value": "Copy to my workspace"
+    }
+  ],
+  "c7d7403714": [
+    {
+      "type": 0,
+      "value": "New board"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Sign out"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Dismiss"
+    }
+  ],
+  "c921b8c0eb": [
+    {
+      "type": 0,
+      "value": "Add a description for this file…"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "cae8d14edd": [
+    {
+      "type": 0,
+      "value": "You"
+    }
+  ],
+  "ccd1f88dd1": [
+    {
+      "type": 0,
+      "value": "Nothing here yet"
+    }
+  ],
+  "ccdc288494": [
+    {
+      "type": 0,
+      "value": "Couldn't reach a microphone."
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profile"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Share this file"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cd8c6e3779": [
+    {
+      "type": 0,
+      "value": "Please refresh the page to get the latest version of UnoCode."
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "This file is approaching its size limit. Consider removing some content or starting a new file."
+    }
+  ],
+  "ce8ae9da5b": [
+    {
+      "type": 0,
+      "value": "Email"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Learn more about publishing."
+    }
+  ],
+  "cf566b5b99": [
+    {
+      "type": 0,
+      "value": "Back to UnoCode"
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Too many requests. Please slow down."
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Toggle sidebar"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Workspaces"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Before you start, please accept our "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "terms of use"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "privacy policy"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Theme"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Try Again"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accept and continue"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Go here to see the content"
+    }
+  ],
+  "db28b432b4": [
+    {
+      "type": 0,
+      "value": "Stored in this browser only. There is no account to sign in to."
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Invite only"
+    }
+  ],
+  "dbf9b24193": [
+    {
+      "type": 0,
+      "value": "Leave workspace"
+    }
+  ],
+  "dc96deda1c": [
+    {
+      "type": 0,
+      "value": "Record again"
+    }
+  ],
+  "dd4361665d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is speaking"
+    }
+  ],
+  "de3c731be5": [
+    {
+      "type": 0,
+      "value": "Play"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App debug flags"
+    }
+  ],
+  "dfe44a7c11": [
+    {
+      "type": 0,
+      "value": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve UnoCode."
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copy invite link"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Legal summary"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Terms of service"
+    }
+  ],
+  "e472458a80": [
+    {
+      "type": 0,
+      "value": "Switch to light theme"
+    }
+  ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "or"
+    }
+  ],
+  "ea05521523": [
+    {
+      "type": 0,
+      "value": "Microphone mode"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Cancel"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Ask the workspace owner for a new one."
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Yesterday"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "This file has reached the maximum number of active collaborators."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Account menu"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Accented"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicate"
+    }
+  ],
+  "ed7ecb1dbb": [
+    {
+      "type": 0,
+      "value": "Seek"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Read our "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cookie policy"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " to learn more."
+    }
+  ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "This comment was deleted."
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Members"
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "selected"
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "User settings"
+    }
+  ],
+  "f1dc8b632d": [
+    {
+      "type": 0,
+      "value": "We use analytics cookies to make UnoCode better."
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "We use these cookies to save your files and settings."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Delete"
+    }
+  ],
+  "f2f9a2e98d": [
+    {
+      "type": 0,
+      "value": "Workspace menu"
+    }
+  ],
+  "f3534345bc": [
+    {
+      "type": 0,
+      "value": "Download a copy"
+    }
+  ],
+  "f3c8149d77": [
+    {
+      "type": 0,
+      "value": "Delete “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "” and every board in it?"
+    }
+  ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Settings"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "For now, you can "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "export as a "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " file"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " to use it here."
+    }
+  ],
+  "f6e64631bf": [
+    {
+      "type": 0,
+      "value": "Delete “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "” and everything on it?"
+    }
+  ],
+  "f7ceab16b0": [
+    {
+      "type": 0,
+      "value": "Recent activity"
+    }
+  ],
+  "f915a95e60": [
+    {
+      "type": 0,
+      "value": "Try again"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Privacy Policy"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Viewer"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to leave this workspace?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Copied link"
+    }
+  ],
+  "ff2fefd3c6": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from this workspace?"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Import file…"
+    }
+  ]
+}

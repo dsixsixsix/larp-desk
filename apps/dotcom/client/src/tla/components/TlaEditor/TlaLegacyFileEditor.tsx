@@ -1,0 +1,142 @@
+import {
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenMode,
+	RoomOpenModeToPath,
+} from '@tldraw/dotcom-shared'
+import { useSync } from '@tldraw/sync'
+import { useCallback, useMemo } from 'react'
+import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
+import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
+import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
+import { assetUrls } from '../../../utils/assetUrls'
+import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
+import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { embedShapeUtils, unoAssetUtils } from '../../../utils/embedShapeUtil'
+import { globalEditor } from '../../../utils/globalEditor'
+import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { useMaybeApp } from '../../hooks/useAppState'
+import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { TlaMediaOverlay } from '../TlaMedia/TlaMediaOverlay'
+import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
+import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
+import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
+import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLegacyModal } from './sneaky/SneakyLegacyModal'
+import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+/** @internal */
+export const components: TLComponents = {
+	ErrorFallback: TlaEditorErrorFallback,
+	MenuPanel: TlaEditorMenuPanel,
+	SharePanel: TlaEditorLegacySharePanel,
+	TopPanel: TlaEditorTopPanel,
+	InFrontOfTheCanvas: TlaMediaOverlay,
+	Dialogs: null,
+	Toasts: null,
+}
+
+export function TlaLegacyFileEditor({
+	roomOpenMode,
+	fileSlug,
+}: {
+	roomOpenMode: RoomOpenMode
+	fileSlug: string
+}) {
+	return (
+		<>
+			<SneakySetDocumentTitle />
+			<ReadyWrapper key={fileSlug}>
+				<TlaEditorInner roomOpenMode={roomOpenMode} fileSlug={fileSlug} key={fileSlug} />
+			</ReadyWrapper>
+		</>
+	)
+}
+
+function TlaEditorInner({
+	fileSlug,
+	roomOpenMode,
+}: {
+	roomOpenMode: RoomOpenMode
+	fileSlug: string
+}) {
+	const app = useMaybeApp()
+	const setIsReady = useSetIsReady()
+
+	// make sure this runs before the editor is instantiated
+	useLegacyUrlParams()
+
+	const handleUiEvent = useHandleUiEvents()
+	const assets = useMemo(() => multiplayerAssetStore(), [])
+
+	const storeWithStatus = useSync({
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}?v=${CLIENT_BUILD_TIMESTAMP}`,
+		roomId: fileSlug,
+		assets,
+		trackAnalyticsEvent: trackEvent,
+		// Register the comment record types so the schema matches the server's (see
+		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
+		// session as too old. Legacy rooms don't render a comments UI.
+		records: commentSchemaRecords,
+	})
+
+	const fileSystemUiOverrides = useFileEditorOverrides({})
+
+	const isReadonly =
+		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
+
+	const trackRoomLoaded = useRoomLoadTracking()
+
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			trackRoomLoaded(editor)
+			if (!isReadonly) {
+				;(window as any).app = editor
+				;(window as any).editor = editor
+			}
+			// Register the editor globally
+			globalEditor.set(editor)
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+			setIsReady()
+		},
+		[isReadonly, trackRoomLoaded, setIsReady]
+	)
+
+	if (storeWithStatus.error) {
+		setIsReady()
+		return <StoreErrorScreen error={storeWithStatus.error} />
+	}
+
+	return (
+		<TlaEditorWrapper>
+			<Tldraw
+				className="tla-editor"
+				licenseKey={getLicenseKey()}
+				store={storeWithStatus}
+				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
+				assetUtils={unoAssetUtils}
+				onMount={handleMount}
+				overrides={[fileSystemUiOverrides]}
+				initialState={isReadonly ? 'hand' : 'select'}
+				onUiEvent={handleUiEvent}
+				components={components}
+				options={{ actionShortcutsLocation: 'toolbar', deepLinks: true }}
+			>
+				<ThemeUpdater />
+				<SneakyDarkModeSync />
+				<SneakyLegacySetDocumentTitle />
+				{roomOpenMode === 'read-write' && <SneakyLegacyModal />}
+				{app && <SneakyTldrawFileDropHandler />}
+			</Tldraw>
+		</TlaEditorWrapper>
+	)
+}

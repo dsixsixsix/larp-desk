@@ -1,0 +1,95 @@
+---
+title: Indicators
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 5
+keywords:
+  - indicators
+  - selection
+  - hover
+  - ShapeUtil
+  - custom shapes
+---
+
+Indicators are the outlines that appear around shapes when they're selected or hovered.
+
+## How indicators work
+
+Indicators are drawn on a canvas overlay in the theme's selection color, separate from the shape's own rendering. Each [ShapeUtil](?) defines its indicator by implementing the required [ShapeUtil#getIndicatorPath](?) method. It returns a `Path2D` in the shape's local coordinate space; the [ShapeIndicatorOverlayUtil](?) included with `<Tldraw>` transforms it into page space and strokes it. Return `undefined` to draw no indicator for a shape.
+
+```tsx
+class CardShapeUtil extends ShapeUtil<CardShape> {
+	// ...
+
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
+	}
+}
+```
+
+For shapes with more complex outlines, build the path from the shape's geometry:
+
+```tsx
+getIndicatorPath(shape: MyShape) {
+	return new Path2D(this.editor.getShapeGeometry(shape).toSimpleSvgPath())
+}
+```
+
+See [Shapes](/docs/shapes) for the rest of the ShapeUtil.
+
+## When indicators appear
+
+The select tool shows indicators in these situations:
+
+| State    | Description                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------------------ |
+| Selected | The shape is in the current selection                                                                              |
+| Hovered  | The pointer is over the shape while the select tool is idle or editing a shape (fine pointers only, not touch)     |
+| Hinting  | The shape is in [Editor#getHintingShapeIds](?), set with [Editor#setHintingShapes](?); drawn with a thicker stroke |
+
+Indicators are hidden while the user is changing styles, while another tool is active, and for locked shapes.
+
+All plain `Path2D` indicators are batched into a single stroke call, so many selected shapes stay cheap to draw.
+
+## Complex canvas indicators
+
+For indicators that need clipping or multiple paths (like arrows with labels), return a [TLIndicatorPath](?) object instead of a plain `Path2D`. The `clipPath` is applied as an even-odd clip region before stroking `path`, so to cut a hole for a label, add an outer rectangle plus the label rectangle. `additionalPaths` are stroked afterwards without the clip:
+
+```tsx
+override getIndicatorPath(shape: MyShape): TLIndicatorPath | undefined {
+	const bodyPath = new Path2D()
+	bodyPath.moveTo(0, 0)
+	bodyPath.lineTo(100, 100)
+
+	const arrowheadPath = new Path2D()
+	arrowheadPath.moveTo(90, 95)
+	arrowheadPath.lineTo(100, 100)
+	arrowheadPath.lineTo(95, 90)
+
+	// Even-odd: the outer rect keeps everything, the inner rect punches a hole
+	const clipPath = new Path2D()
+	clipPath.rect(-100, -100, 300, 300)
+	clipPath.rect(40, 40, 20, 20)
+
+	return {
+		path: bodyPath,
+		clipPath,
+		additionalPaths: [arrowheadPath],
+	}
+}
+```
+
+## Collaborator indicators
+
+In multiplayer sessions, [CollaboratorShapeIndicatorOverlayUtil](?) draws other users' selections in each collaborator's color at reduced opacity, underneath the local indicators.
+
+## Related topics
+
+| Topic                                                      | Description                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| [Shapes](/docs/shapes)                                     | Creating custom shapes with ShapeUtil                               |
+| [User interface](/docs/user-interface)                     | Customizing tldraw's UI components                                  |
+| [Custom indicators example](/examples/ui/indicators-logic) | Subclass `ShapeIndicatorOverlayUtil` to change when indicators show |

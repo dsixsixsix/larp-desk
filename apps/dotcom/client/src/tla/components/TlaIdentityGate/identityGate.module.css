@@ -1,0 +1,74 @@
+.gate {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--tl-color-background);
+}
+
+.card {
+	width: 320px;
+	max-width: calc(100vw - 32px);
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 24px;
+	box-sizing: border-box;
+	border-radius: var(--uno-radius-panel);
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-low-border);
+	box-shadow:
+		0 1px 2px rgb(0 0 0 / 15%),
+		0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--tl-color-text-0);
+}
+
+.description {
+	margin: 0;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+}
+
+.field input {
+	font: inherit;
+	padding: 8px 10px;
+	border-radius: var(--uno-radius-control);
+	border: 1px solid var(--tl-color-low-border);
+	background-color: var(--tl-color-low);
+	color: var(--tl-color-text-0);
+}
+
+.field input:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 1px;
+}
+
+.submit {
+	margin-top: 4px;
+	padding: 10px 14px;
+	border: none;
+	border-radius: var(--uno-radius-control);
+	background-color: var(--uno-color-brand);
+	color: var(--tl-color-selected-contrast);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.submit:active {
+	transform: scale(0.98);
+}

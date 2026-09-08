@@ -1,0 +1,56 @@
+/* Positioned by `transform: translate()` from the InFrontOfTheCanvas layer's own origin (which
+   lines up with the editor's screen space, see TlaConnectionHandles) — top/left offsets below just
+   recenter each element on that point. */
+
+.handle {
+	position: absolute;
+	top: -7px;
+	left: -7px;
+	width: 14px;
+	height: 14px;
+	box-sizing: border-box;
+	border-radius: 50%;
+	background-color: var(--tl-color-background);
+	border: 2px solid var(--tl-color-selection-stroke);
+	cursor: crosshair;
+	pointer-events: all;
+	touch-action: none;
+}
+
+@media (hover: hover) {
+	.handle:hover {
+		background-color: var(--tl-color-selection-stroke);
+	}
+}
+
+/* The dot a drag is currently snapped to — on another shape's side while dragging from this
+   shape's own dot, see TlaConnectionHandles. */
+.handleSnapped {
+	top: -9px;
+	left: -9px;
+	width: 18px;
+	height: 18px;
+	background-color: var(--tl-color-selection-stroke);
+}
+
+.dragOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.dragOverlay line {
+	stroke: var(--tl-color-selection-stroke);
+	stroke-width: 2;
+	stroke-dasharray: 6 4;
+}
+
+.dragTarget {
+	fill: none;
+	stroke: var(--tl-color-selection-stroke);
+	stroke-width: 2;
+}

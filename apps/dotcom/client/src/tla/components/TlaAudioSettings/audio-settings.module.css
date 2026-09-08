@@ -1,0 +1,167 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 6px 0px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.sectionLabel {
+	height: 24px;
+	display: flex;
+	align-items: center;
+	font-weight: 500;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fieldLabel {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.select {
+	height: 36px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--uno-radius-control);
+	background-color: var(--tl-color-muted-0);
+	color: var(--tl-color-text-0);
+	padding: 0px var(--tl-space-3);
+	font: inherit;
+	font-size: 12px;
+	width: 100%;
+}
+
+.select:focus {
+	border: 1px solid var(--tl-color-primary);
+}
+
+.help {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.testArea {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.testButton {
+	align-self: flex-start;
+	height: 32px;
+	padding: 0 14px;
+	border: none;
+	border-radius: var(--uno-radius-control);
+	background-color: var(--uno-color-brand);
+	color: var(--tl-color-selected-contrast);
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.testButton:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.playbackRow {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.linkButton {
+	align-self: flex-start;
+	background: none;
+	border: none;
+	padding: 4px 0;
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.meterRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.meter {
+	flex: 1 1 auto;
+	height: 8px;
+	border-radius: 4px;
+	background-color: var(--tl-color-muted-2);
+	overflow: hidden;
+}
+
+.meterFill {
+	height: 100%;
+	background-color: var(--uno-color-brand);
+	/* Level updates every animation frame — a transition would always lag behind it. */
+	transition: none;
+}
+
+.countdown {
+	flex: 0 0 auto;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	color: var(--tl-color-text-3);
+}
+
+.recordingLabel {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.errorText {
+	font-size: 12px;
+	color: var(--tl-color-danger);
+}
+
+/* Two or three mutually exclusive choices, shown all at once rather than behind a select: the
+   trade-off between them is the thing being chosen, so hiding two of the three hides the choice. */
+.segmented {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	border-radius: var(--uno-radius-control);
+	background-color: var(--tl-color-muted-2);
+}
+
+.segment {
+	flex: 1 1 0;
+	height: 28px;
+	border: none;
+	border-radius: calc(var(--uno-radius-control) - 2px);
+	background: none;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.segment[aria-checked='true'] {
+	background-color: var(--tl-color-panel);
+	color: var(--tl-color-text-0);
+	font-weight: 600;
+	box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+@media (hover: hover) {
+	.segment:not([aria-checked='true']):hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+.range {
+	width: 100%;
+	accent-color: var(--uno-color-brand);
+}

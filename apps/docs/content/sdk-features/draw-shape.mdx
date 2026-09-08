@@ -1,0 +1,209 @@
+---
+title: Draw shape
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - draw
+  - freehand
+  - pen
+  - stylus
+  - pressure
+  - drawing
+  - sketch
+  - stroke
+  - straight line
+  - shift
+  - angle snap
+status: published
+date: 1/31/2026
+---
+
+The draw shape captures freehand strokes and straight line segments. The draw tool produces pressure-sensitive strokes from pens and styluses, snaps straight lines to 15° angles when you hold Shift, and closes shapes automatically when a stroke ends near its start. Its keyboard shortcuts are D, B, and X, and holding Ctrl (or Cmd) while pressing down switches temporarily to the eraser.
+
+## Drawing modes
+
+The draw tool supports two segment types that you can switch between while drawing:
+
+| Mode     | Trigger                  | Behavior                                                                     |
+| -------- | ------------------------ | ---------------------------------------------------------------------------- |
+| Freehand | Default                  | Captures natural hand motion with optional pressure sensitivity              |
+| Straight | Hold Shift while drawing | Creates straight line segments that snap to 15° angle increments (see below) |
+
+You can mix both modes in a single stroke. Start drawing freehand, then hold Shift to switch to straight lines. Release Shift to return to freehand. Each mode change creates a new segment in the shape.
+
+### Freehand drawing
+
+Freehand mode captures your natural hand motion. The tool records points as you drag and interpolates them into smooth curves. When you draw with a pen or stylus, the tool captures pressure data and produces variable-width strokes.
+
+The stroke appearance depends on the dash style. The `draw` style uses the freehand algorithm to create hand-drawn strokes with natural width variation. The `solid`, `dashed`, and `dotted` styles render uniform-width strokes.
+
+### Straight line mode
+
+Hold Shift while drawing to create straight line segments. The line snaps to 15° angle increments (24 divisions of a full circle) relative to the previous point, which covers horizontal and vertical lines, 45° diagonals, and the 30° and 60° angles used in isometric drawings. Hold Ctrl to disable angle snapping temporarily.
+
+Release Shift to continue with freehand drawing from the current endpoint. The transition creates a smooth connection between the straight segment and the freehand stroke.
+
+### Extending previous strokes
+
+If you've already drawn a stroke and want to continue from it, hold Shift and click to connect. The draw tool creates a straight line segment from the previous stroke's endpoint to your click position. Continue holding Shift and drag to extend with more straight segments, or release Shift to switch to freehand.
+
+This connect-the-dots behavior only activates when you Shift+click after completing a previous stroke with the same draw tool session. It won't connect across different shapes or after switching tools.
+
+## Pen and stylus support
+
+The draw tool distinguishes between mouse/touch input and pen/stylus input. When it detects a pen or stylus, it enables pressure-sensitive rendering:
+
+| Input type  | Pressure behavior                                                  |
+| ----------- | ------------------------------------------------------------------ |
+| Mouse/touch | Simulates pressure based on velocity—faster strokes appear thinner |
+| Pen/stylus  | Uses actual pressure data for variable stroke width                |
+
+The tool treats input as a pen when the browser reports a pen pointer with non-zero pressure, or when the pressure value is strictly between 0 and 0.5 or between 0.5 and 1. Mice report exactly 0.5.
+
+The shape stores pen detection in the `isPen` property. This affects how the stroke renders—pen strokes use a different stroke profile optimized for real pressure data.
+
+## Automatic shape closing
+
+Draw shapes can automatically close when you bring the endpoint near the starting point. This creates filled shapes when combined with a fill style other than "none".
+
+The shape closes when:
+
+- The path length exceeds 4× the scaled stroke width
+- The endpoint is within a small distance of the starting point (roughly the stroke width plus a margin, boosted at low zoom levels)
+
+When a shape closes, the shape sets `isClosed` to true and fills according to its fill style. Highlight shapes don't support closing.
+
+## Line snapping
+
+When drawing straight lines with Shift held, you can snap to previous segments in the current stroke. This helps create precise geometric constructions:
+
+- Enable snap mode in user preferences, or hold Ctrl (when snap mode is disabled) to temporarily enable snapping
+- Hold Ctrl (when snap mode is enabled) to temporarily disable snapping
+- The tool snaps to the nearest point on earlier straight segments (excluding the current and previous segment) within 8 screen pixels
+
+Visual snap indicators appear when snapping is active.
+
+## Dynamic resize mode
+
+When dynamic resize mode is enabled in user preferences, new draw shapes scale inversely with zoom level. Drawing while zoomed out creates shapes that appear the same size on screen as they would at 100% zoom. The shape's `scale` property stores this adjustment.
+
+Access dynamic resize mode through [Editor#user](?):
+
+```typescript
+// Check current mode
+const isDynamic = editor.user.getIsDynamicResizeMode()
+
+// Enable dynamic resize mode
+editor.user.updateUserPreferences({ isDynamicSizeMode: true })
+```
+
+## Shape properties
+
+Draw shapes store their path data in a delta-encoded base64 format. Segments from pens and styluses store x, y, and z (pressure): the first point uses full Float32 precision (12 bytes) and each subsequent point is a Float16 delta (6 bytes). Segments from mice and touch input drop the constant pressure value and store only x and y, marked with `dim: 2` (8 bytes for the first point, 4 bytes per delta).
+
+| Property     | Type                   | Description                                                              |
+| ------------ | ---------------------- | ------------------------------------------------------------------------ |
+| `color`      | `TLDefaultColorStyle`  | Stroke color                                                             |
+| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)                             |
+| `dash`       | `TLDefaultDashStyle`   | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`, `none`              |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset: `s`, `m`, `l`, `xl`                                 |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type`, base64-encoded `path`, and optional `dim` |
+| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke                        |
+| `isClosed`   | `boolean`              | Whether the path forms a closed shape                                    |
+| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width)               |
+| `scale`      | `number`               | Scale factor applied to the shape                                        |
+| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                                  |
+| `scaleY`     | `number`               | Vertical scale factor for lazy resize                                    |
+
+Each segment has a `type` of `'free'` or `'straight'`, a `path` containing the encoded points, and an optional `dim` of `2` (x and y only) or `3` (x, y, and pressure; the default when omitted). Resizing a draw shape doesn't re-encode its points; it updates `scaleX` and `scaleY` instead.
+
+## Configuration options
+
+Configure [DrawShapeUtil](?) to adjust behavior:
+
+| Option              | Type     | Default | Description                                              |
+| ------------------- | -------- | ------- | -------------------------------------------------------- |
+| `maxPointsPerShape` | `number` | `600`   | Maximum points before automatically starting a new shape |
+
+```tsx
+import { DrawShapeUtil } from 'tldraw'
+
+const ConfiguredDrawUtil = DrawShapeUtil.configure({
+	maxPointsPerShape: 1000,
+})
+```
+
+When a stroke exceeds the maximum point count, the draw tool completes the current shape and creates a new one at the current position. This prevents performance issues with very long strokes.
+
+## Creating draw shapes programmatically
+
+To create a draw shape through the editor API, you need to encode the point data:
+
+```tsx
+import { b64Vecs, createShapeId } from 'tldraw'
+
+// Define your points with x, y, and z (pressure)
+const points = [
+	{ x: 0, y: 0, z: 0.5 },
+	{ x: 50, y: 30, z: 0.5 },
+	{ x: 100, y: 10, z: 0.5 },
+]
+
+editor.createShape({
+	id: createShapeId(),
+	type: 'draw',
+	x: 100,
+	y: 100,
+	props: {
+		color: 'black',
+		fill: 'none',
+		dash: 'draw',
+		size: 'm',
+		segments: [
+			{
+				type: 'free',
+				path: b64Vecs.encodePoints(points),
+			},
+		],
+		isComplete: true,
+		isClosed: false,
+		isPen: false,
+		scale: 1,
+		scaleX: 1,
+		scaleY: 1,
+	},
+})
+```
+
+[b64Vecs](?)`.encodePoints` converts an array of point objects to the delta-encoded base64 format; pass `2` as the second argument to store x and y only. Use `b64Vecs.decodePoints(segment.path, segment.dim)` to read points back.
+
+## Stroke rendering
+
+The draw shape uses a freehand stroke algorithm to render organic-looking lines. Streamlining reduces jitter by interpolating each new point toward the previous one, smoothing rounds the outline, and thinning varies stroke width by velocity (for mouse) or pressure (for pen).
+
+When `dash` is set to `'draw'`, the shape renders using the full freehand algorithm. Other dash styles use simpler uniform-width strokes with the appropriate dash pattern.
+
+At low zoom levels, the shape switches to solid rendering for performance. This happens when the zoom level is below 50% and also below a threshold based on the scaled stroke width.
+
+## Geometry
+
+The shape's geometry depends on its content:
+
+| Content                          | Geometry                                                         |
+| -------------------------------- | ---------------------------------------------------------------- |
+| Tiny single-segment stroke (dot) | A [Circle2d](?) with a radius of roughly the scaled stroke width |
+| Closed path                      | A [Polygon2d](?) that can be filled                              |
+| Open path                        | A [Polyline2d](?) following the stroke's center line             |
+
+The geometry uses the processed stroke points (after applying streamline and smoothing), not the raw input points.
+
+## Related shapes
+
+- [Highlight](/sdk-features/default-shapes#highlight) uses the same point capture system but renders semi-transparently for marking up content
+- [Line](/sdk-features/default-shapes#line) creates editable multi-point lines with draggable handles
+
+## Related articles
+
+- [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shapes
+- [Tools](/sdk-features/tools) — How tools handle user input
+- [Styles](/sdk-features/styles) — Working with shape styles like color and size

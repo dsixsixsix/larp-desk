@@ -1,0 +1,146 @@
+---
+title: Deep links
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - deep link
+  - URL
+  - share
+  - navigation
+  - state
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 10
+notes: ''
+---
+
+Deep links serialize editor state into URL-safe strings. They let users share links that open the editor at specific locations: individual shapes, viewport positions, or entire pages.
+
+The simplest way to enable deep links is with the `deepLinks` option:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="example" options={{ deepLinks: true }} />
+		</div>
+	)
+}
+```
+
+With `deepLinks` enabled, the editor reads the `d` query parameter on mount and navigates to it, then keeps the URL up to date as users navigate. Anyone opening the URL sees the same page and viewport position.
+
+For more control, use the editor methods directly. [Editor#createDeepLink](?) generates URLs with encoded state, [Editor#navigateToDeepLink](?) moves the editor to a specified location, and [Editor#registerDeepLinkListener](?) updates URLs automatically as users navigate.
+
+## Deep link types
+
+A [TLDeepLink](?) is one of three types:
+
+| Type       | Purpose                                             | Encoded prefix |
+| ---------- | --------------------------------------------------- | -------------- |
+| `shapes`   | Links to specific shapes, zooming to fit them       | `s`            |
+| `viewport` | Links to a bounding box view, with an optional page | `v`            |
+| `page`     | Links to a specific page, zoomed to fit its content | `p`            |
+
+## How it works
+
+Deep links are encoded as compact strings with a single-character prefix identifying the type:
+
+- Shape links (`s`) encode shape IDs separated by dots: `s<id1>.<id2>.<id3>`
+- Viewport links (`v`) encode rounded bounding box coordinates: `v<x>.<y>.<w>.<h>` with optional page ID
+- Page links (`p`) encode a page ID: `p<pageId>`
+
+All IDs are URL-encoded to handle special characters. The default query parameter is `d`, but you can customize this with the `param` option. When navigating to a shapes deep link, the editor switches to the page containing the most shapes and zooms to fit them. Viewport links set the camera to the exact specified bounds. If the parameter is missing or invalid, or the shapes or page no longer exist, the editor zooms to fit the page content instead. Use [createDeepLinkString](?) and [parseDeepLinkString](?) to encode and decode these strings without an editor.
+
+## API methods
+
+### createDeepLink
+
+Creates a URL with a deep link query parameter encoding the current viewport and page:
+
+```ts
+// Create a link to the current viewport
+const url = editor.createDeepLink()
+navigator.clipboard.writeText(url.toString())
+```
+
+Specify a target to link to specific shapes:
+
+```ts
+// Link to currently selected shapes
+const url = editor.createDeepLink({
+	to: { type: 'shapes', shapeIds: editor.getSelectedShapeIds() },
+})
+```
+
+### navigateToDeepLink
+
+Navigates the editor to the location specified by a deep link URL or object:
+
+```ts
+import { TLShapeId } from 'tldraw'
+
+// Navigate using the current URL's query parameter
+editor.navigateToDeepLink()
+
+// Navigate to a specific URL
+editor.navigateToDeepLink({ url: 'https://example.com?d=v100.100.200.200' })
+
+// Navigate directly to shapes
+editor.navigateToDeepLink({
+	type: 'shapes',
+	shapeIds: ['shape:abc' as TLShapeId, 'shape:xyz' as TLShapeId],
+})
+```
+
+### registerDeepLinkListener
+
+Sets up automatic URL updates as the viewport changes. The listener debounces updates (500ms by default) to avoid excessive history entries:
+
+```ts
+// Use default behavior (replaces the current URL without adding history entries)
+const unlisten = editor.registerDeepLinkListener()
+
+// Custom change handler with longer debounce
+const unlisten = editor.registerDeepLinkListener({
+	onChange(url) {
+		window.history.replaceState({}, document.title, url.toString())
+	},
+	debounceMs: 1000,
+})
+
+// Clean up when done
+unlisten()
+```
+
+The `deepLinks` option on the Tldraw component calls this for you. Pass a [TLDeepLinkOptions](?) object instead of `true` to customize it; both the option and the method accept the same fields:
+
+| Option       | Description                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| `param`      | The query parameter name. Defaults to `'d'`                                                  |
+| `debounceMs` | How long to wait before updating the URL. Defaults to `500`                                  |
+| `getTarget`  | Returns the [TLDeepLink](?) to encode. Defaults to the current page and viewport             |
+| `getUrl`     | Returns the URL to add the parameter to. If you supply this, you must also supply `onChange` |
+| `onChange`   | Called with the updated URL. Defaults to `window.history.replaceState`                       |
+
+```tsx
+<Tldraw
+	options={{
+		deepLinks: {
+			param: 'view',
+			getUrl: () => window.location.href,
+			onChange: (url) => router.replace(url.toString()),
+		},
+	}}
+/>
+```
+
+## Related examples
+
+- [Deep links](/examples/configuration/deep-links) - Using the `deepLinks` option and creating, parsing, and handling deep links manually with the editor methods.

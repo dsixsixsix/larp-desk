@@ -1,0 +1,148 @@
+---
+title: Error handling
+created_at: 12/22/2025
+updated_at: 12/29/2025
+keywords:
+  - error
+  - ErrorBoundary
+  - crash
+  - fallback
+  - ErrorFallback
+  - ShapeErrorFallback
+reviewed_by: steveruizok
+status: published
+date: 12/22/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Add API reference links. Add context about common error sources.
+---
+
+The editor uses multiple layers of React error boundaries to isolate failures. When a shape throws during render, only that shape shows a fallback. The rest of the editor keeps working. This matters because custom shapes are a common extension point, and third-party code should not crash the whole editor.
+
+## Error boundary layers
+
+Error boundaries exist at two levels.
+
+At the application level, a boundary wraps the entire editor. If something throws here, the editor shows a full-screen error with options to refresh or reset local data. This is the last resort. There are actually two of these: an outer one that catches errors before the [Editor](?) exists, and an inner one that has access to the editor, so it can annotate the error and still try to render your document behind the error screen.
+
+At the shape level, each shape's component (and its background component, if it has one) renders inside its own boundary. A broken shape shows a fallback, but the user can still interact with everything else. ShapeUtil code is the most likely place for bugs, especially in custom shapes.
+
+## Default fallbacks
+
+Each boundary level has a default fallback component.
+
+[DefaultErrorFallback](?) shows a modal with the error message and stack trace. It tries to render the canvas behind the modal so users can see their work is probably still there. The modal offers buttons to copy the error, refresh the page, or reset local data.
+
+The default shape fallback renders a div with the class `tl-shape-error-boundary`, which the default CSS styles as a muted box labeled "Error" in the shape's place. Override this class if you want broken shapes to look different.
+
+## Customizing error components
+
+Replace either fallback through the `ErrorFallback` and `ShapeErrorFallback` keys of the [TLEditorComponents](?) `components` prop:
+
+```tsx
+import { Tldraw, TLErrorFallbackComponent, TLShapeErrorFallbackComponent } from 'tldraw'
+
+const MyErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
+	return (
+		<div className="my-error-screen">
+			<h1>Oops!</h1>
+			<p>{error instanceof Error ? error.message : String(error)}</p>
+			<button onClick={() => window.location.reload()}>Refresh</button>
+		</div>
+	)
+}
+
+const MyShapeErrorFallback: TLShapeErrorFallbackComponent = ({ error }) => {
+	return <div className="broken-shape">This shape failed to render</div>
+}
+
+;<Tldraw
+	components={{
+		ErrorFallback: MyErrorFallback,
+		ShapeErrorFallback: MyShapeErrorFallback,
+	}}
+/>
+```
+
+Passing `null` for a fallback (with a cast, since the props are typed as components) disables the error boundary at that level. Errors propagate to the parent boundary instead.
+
+## Crash handling
+
+When an error is thrown inside a store transaction (anything wrapped in [Editor#run](?), which includes most editor methods), the history manager catches it, annotates it, and puts the editor into a crashed state. Listen for this with the `crash` event:
+
+```tsx
+editor.on('crash', ({ error }) => {
+	console.error('Editor crashed:', error)
+	// Report to error tracking service
+})
+```
+
+When crashed, the editor stops processing new events to prevent further damage and marks the store as possibly corrupted. The application-level error boundary then shows the fallback UI with its refresh and reset options.
+
+## Error annotations
+
+The SDK attaches debugging metadata to errors it catches, and you can add your own with `annotateError` from `@tldraw/utils`. Use `getErrorAnnotations` to read the tags and extras back, which is useful for error tracking services like Sentry:
+
+```tsx
+import { getErrorAnnotations, TLErrorFallbackComponent } from 'tldraw'
+
+const MyErrorFallback: TLErrorFallbackComponent = ({ error }) => {
+	const annotations = error instanceof Error ? getErrorAnnotations(error) : null
+
+	// Send to error tracking
+	if (annotations) {
+		Sentry.setTags(annotations.tags)
+		Sentry.setExtras(annotations.extras)
+	}
+
+	return (
+		<div>
+			<h1>Something went wrong</h1>
+			<pre>{JSON.stringify(annotations, null, 2)}</pre>
+		</div>
+	)
+}
+```
+
+Annotations include `tags` (key-value pairs for categorization) and `extras` (additional context data). `getErrorAnnotations` is currently marked internal, so its signature may change between versions.
+
+## ErrorBoundary component
+
+Use the exported [ErrorBoundary](?) component directly in your own code:
+
+```tsx
+import { ErrorBoundary, TLErrorFallbackComponent } from 'tldraw'
+
+const MyFallback: TLErrorFallbackComponent = ({ error }) => (
+	<div>Error: {error instanceof Error ? error.message : String(error)}</div>
+)
+
+function MyComponent() {
+	return (
+		<ErrorBoundary fallback={MyFallback} onError={(error) => console.error('Caught:', error)}>
+			<RiskyComponent />
+		</ErrorBoundary>
+	)
+}
+```
+
+The `fallback` prop accepts a [TLErrorFallbackComponent](?), which receives `{ error: unknown; editor?: Editor }`. `ErrorBoundary` itself only passes `error`; `editor` is provided by the editor's inner application-level boundary. The `onError` callback fires when an error is caught, before the fallback renders.
+
+## API reference
+
+| Symbol                             | Description                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------ |
+| [ErrorBoundary](?)                 | Reusable error boundary component; see [TLErrorBoundaryProps](?)               |
+| [DefaultErrorFallback](?)          | Default application-level error screen                                         |
+| [TLErrorFallbackComponent](?)      | `ComponentType<{ error: unknown; editor?: Editor }>`, used for `ErrorFallback` |
+| [TLShapeErrorFallbackComponent](?) | `ComponentType<{ error: any }>`, used for `ShapeErrorFallback`                 |
+| `annotateError`                    | Attach tags and extras to an error                                             |
+| `getErrorAnnotations(error)`       | Read tags and extras from an error; marked internal                            |
+| `crash` event                      | Emitted with `{ error: unknown }` when the editor enters the crashed state     |
+
+## Related examples
+
+- [Error boundary](/examples/ui/error-boundary): customize `ShapeErrorFallback` to display a custom message when shapes throw errors.
+- [Custom error capture](/examples/ui/custom-error-capture): override `ErrorFallback` to create a custom error screen with annotations for debugging.

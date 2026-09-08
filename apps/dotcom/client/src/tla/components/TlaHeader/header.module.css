@@ -1,0 +1,112 @@
+/* A flat strip behind the existing top-left/top-right panels, at the same height they already
+   use (44px — see .topLeftPanel / .topRightPanel in top.module.css), so the separate panels and
+   the search box in between read as one continuous header bar instead of floating chips. */
+.headerBackground {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 44px;
+	background-color: var(--tl-color-background);
+	border-bottom: 1px solid var(--tl-color-low-border);
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Fixed and centered on the viewport rather than left in the grid's center column: the left and
+   right header content don't have equal width (and the right side grows further once more icons
+   land there), so a grid `1fr auto 1fr` track would drift off-true-center as that imbalance
+   grows. Viewport-relative centering keeps this box exactly centered regardless. */
+.search {
+	position: fixed;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1;
+	width: clamp(180px, 40vw, 480px);
+	height: 44px;
+	display: flex;
+	align-items: center;
+	pointer-events: all;
+}
+
+.searchInput {
+	width: 100%;
+	height: 32px;
+	box-sizing: border-box;
+	padding: 0 12px;
+	border-radius: var(--uno-radius-control);
+	border: 1px solid var(--tl-color-low-border);
+	background-color: var(--tl-color-low);
+	color: var(--tl-color-text-0);
+	font: inherit;
+	font-size: 12px;
+}
+
+.searchInput::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+.searchInput:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 1px;
+}
+
+.searchResults {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	max-height: 320px;
+	overflow-y: auto;
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-low-border);
+	border-radius: var(--uno-radius-control);
+	box-shadow:
+		0 1px 2px rgb(0 0 0 / 15%),
+		0 8px 24px rgb(0 0 0 / 18%);
+	padding: 4px;
+	box-sizing: border-box;
+}
+
+.searchEmpty {
+	padding: 8px 10px;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.searchResultItem {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	padding: 7px 10px;
+	border: none;
+	background: none;
+	border-radius: var(--uno-radius-control);
+	color: var(--tl-color-text-0);
+	font: inherit;
+	font-size: 12px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.searchResultLabel {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.searchResultMeta {
+	flex: 0 0 auto;
+	color: var(--tl-color-text-3);
+}
+
+@media (hover: hover) {
+	.searchResultItem:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}

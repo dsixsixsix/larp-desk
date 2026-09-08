@@ -1,0 +1,193 @@
+.participants {
+	display: flex;
+	align-items: center;
+	pointer-events: all;
+}
+
+/* Overlapped stack: the row stays a fixed-ish width as people come and go, which is what makes
+   the count readable at a glance rather than a line of boxes to count. */
+.avatar {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin-left: -6px;
+	border-radius: 50%;
+	box-shadow: 0 0 0 2px var(--tl-color-panel);
+	color: var(--tl-color-selected-contrast);
+	flex: 0 0 auto;
+}
+
+.avatar:first-child {
+	margin-left: 0;
+}
+
+.avatarInitials {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	user-select: none;
+}
+
+.avatarOverflow {
+	background-color: var(--tl-color-muted-1);
+	color: var(--tl-color-text-1);
+}
+
+/* The speaking ring. Kept as a box-shadow on a pseudo-element so it can pulse without changing
+   the avatar's size — a growing avatar would nudge every other one along the row. */
+.avatarSpeaking::after {
+	content: '';
+	position: absolute;
+	inset: -3px;
+	border-radius: 50%;
+	border: 2px solid var(--uno-color-brand);
+	animation: speakingPulse 1.1s var(--uno-ease) infinite;
+}
+
+@keyframes speakingPulse {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	70% {
+		opacity: 0.25;
+		transform: scale(1.18);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.avatarSpeaking::after {
+		animation: none;
+	}
+}
+
+/* A filled dot in the corner: this person has a microphone open, whether or not they're talking
+   right now. Distinct from the ring so "in the call" and "talking" don't read as the same state. */
+.avatarMic {
+	position: absolute;
+	right: -1px;
+	bottom: -1px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: var(--uno-color-brand);
+	box-shadow: 0 0 0 2px var(--tl-color-panel);
+}
+
+.count {
+	margin-left: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Reversed so the toggle sits at the row's right edge, which is the edge the header anchors to.
+   In DOM order the toggle comes first (it is the primary control, and the one that should take
+   focus first); laying it out last keeps it in a fixed position while the talk button and status
+   badge grow leftwards into empty header space instead of shoving the icon around. */
+.voiceControls {
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: center;
+	gap: 6px;
+	pointer-events: all;
+}
+
+.voiceButton {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: var(--uno-radius-control);
+	background: none;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+	overflow: hidden;
+}
+
+@media (hover: hover) {
+	.voiceButton:hover {
+		background-color: var(--tl-color-muted-2);
+		color: var(--tl-color-text-0);
+	}
+}
+
+/* Red only ever means "the microphone is live" — the one state worth spotting across the room.
+   A failed attempt leaves the button in its plain off state and reports the reason as a toast
+   (see TlaVoiceChatButton), so the control never gets stuck looking active. */
+.voiceButtonOn {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-danger);
+}
+
+.voiceButtonGlyph {
+	display: block;
+}
+
+/* Input level, drawn as a bar across the bottom of the button. Transform rather than width so it
+   animates on the compositor while the canvas is being drawn on. */
+.voiceLevel {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 2px;
+	background-color: var(--tl-color-danger);
+	transform-origin: left center;
+	transition: transform 100ms linear;
+}
+
+/* A fixed width so the label swapping between "Hold to talk" and "Talking" doesn't resize the
+   control mid-press, and so it can never grow far enough to reach the header's search field. */
+.talkButton,
+.openMicBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 104px;
+	height: 26px;
+	padding: 0 10px;
+	border-radius: var(--uno-radius-control);
+	font-size: 11px;
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.talkButton {
+	border: 1px solid var(--tl-color-low-border);
+	background-color: var(--tl-color-low);
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+	user-select: none;
+	touch-action: none;
+}
+
+.talkButtonHeld {
+	border-color: transparent;
+	background-color: var(--uno-color-brand);
+	color: var(--tl-color-selected-contrast);
+}
+
+.openMicBadge {
+	background-color: var(--tl-color-low);
+	color: var(--tl-color-text-3);
+}
+
+.openMicBadgeActive {
+	background-color: var(--uno-color-brand);
+	color: var(--tl-color-selected-contrast);
+}

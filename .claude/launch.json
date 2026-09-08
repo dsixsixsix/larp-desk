@@ -1,0 +1,17 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "unocode-client",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": ["workspace", "dotcom", "dev"],
+			"port": 3000
+		},
+		{
+			"name": "unocode-sync-worker",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": ["workspace", "@tldraw/dotcom-worker", "dev"],
+			"port": 8787
+		}
+	]
+}

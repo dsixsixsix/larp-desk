@@ -1,0 +1,138 @@
+---
+title: Animation
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - animation
+  - easing
+  - interpolation
+  - transition
+  - animateShape
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Voice issues with "enable" and passive constructions ("are interpolated", "is useful for").
+---
+
+The animation system drives smooth transitions for shapes and for the camera. Shape animations interpolate a shape's position, rotation, opacity, and props. Camera animations move the viewport for pans and zooms.
+
+## How it works
+
+Animations run on the editor's [tick system](/sdk-features/ticks). When you call [Editor#animateShape](?) or a camera method with an `animation` option, the editor subscribes to `tick` events, applies the easing function to the elapsed time, and interpolates between the start and end values until the animation completes.
+
+Camera animations respect the user's animation speed preference; shape animations don't. See [User preferences](#user-preferences) below.
+
+## Shape animations
+
+Use [Editor#animateShape](?) to animate a single shape or [Editor#animateShapes](?) to animate several at once. The editor tracks each animating shape independently, so multiple animations can run at the same time:
+
+```typescript
+import { createShapeId, EASINGS } from 'tldraw'
+
+const shapeId = createShapeId('myshape')
+
+editor.animateShape(
+	{ id: shapeId, type: 'geo', x: 200, y: 100 },
+	{ animation: { duration: 500, easing: EASINGS.easeOutCubic } }
+)
+```
+
+### Animated properties
+
+The editor linearly interpolates the properties common to every shape: `x`, `y`, `rotation` (in radians), and `opacity` (0 to 1).
+
+For shape-specific props like width and height, the shape util implements [ShapeUtil#getInterpolatedProps](?). If a util doesn't implement it, the props jump to their end values on the first frame. This is how [BaseBoxShapeUtil](?) interpolates its dimensions (`lerp` is exported from `tldraw`):
+
+```typescript
+getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
+	return {
+		...endShape.props,
+		w: lerp(startShape.props.w, endShape.props.w, t),
+		h: lerp(startShape.props.h, endShape.props.h, t),
+	}
+}
+```
+
+### Animation lifecycle
+
+Shape animations default to a duration of 500 ms and `linear` easing. Intermediate frames don't create history entries; when the animation finishes the editor calls `updateShapes()` with the final values, so a single undo restores the starting state.
+
+You can interrupt an animation in two ways. Calling `updateShapes()` on an animating shape cancels its animation and applies the new values immediately. Starting a new animation for a shape cancels the existing one.
+
+User interaction wins over ongoing animations. If you drag a shape that's animating, the animation stops and the shape follows your pointer.
+
+## Camera animations
+
+The camera-move methods ([Editor#setCamera](?), [Editor#zoomToBounds](?), [Editor#zoomToFit](?), and the rest) accept an `animation` option in [TLCameraMoveOptions](?). Without it, or with a `duration` of `0`, the camera jumps straight to the target. See [Camera](/sdk-features/camera) for the full set of methods.
+
+```typescript
+editor.setCamera(
+	{ x: 0, y: 0, z: 1 },
+	{ animation: { duration: 320, easing: EASINGS.easeInOutCubic } }
+)
+```
+
+Camera animations default to `easeInOutCubic` easing. They stop as soon as the user pans, zooms, or pinches, and you can stop them yourself with [Editor#stopCameraAnimation](?). If the camera is locked, camera methods do nothing unless you pass `force: true`.
+
+### Zooming to bounds
+
+Use `zoomToBounds()` to animate the camera so a specific area fills the viewport, for example to focus on shapes or build slideshow-style transitions. You can also cap the zoom with `targetZoom` and add screen-space padding with `inset`:
+
+```typescript
+const bounds = { x: 0, y: 0, w: 800, h: 600 }
+editor.zoomToBounds(bounds, {
+	animation: { duration: 500 },
+	targetZoom: 1, // zoom to 100%
+	inset: 50, // padding around the bounds in pixels
+})
+```
+
+`zoomToFit()` is a convenience wrapper that zooms to fit all shapes on the current page:
+
+```typescript
+editor.zoomToFit({ animation: { duration: 200 } })
+```
+
+### Camera slide
+
+[Editor#slideCamera](?) creates momentum-based camera movement that decelerates under friction:
+
+```typescript
+editor.slideCamera({
+	speed: 1,
+	direction: { x: 1, y: 0 },
+	friction: 0.1,
+})
+```
+
+## Easing functions
+
+Easing functions control the rate of change during an animation. Use an `easeOut` curve when responding to user actions (fast start, gentle settle), `easeIn` for exits (gentle start, quick finish), and `easeInOut` for autonomous moves like camera transitions.
+
+[EASINGS](?) provides `linear` plus the standard `easeIn`, `easeOut`, and `easeInOut` variants of `Quad`, `Cubic`, `Quart`, `Quint`, `Sine`, and `Expo`, for example `EASINGS.easeOutCubic` or `EASINGS.easeInOutSine`.
+
+## User preferences
+
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value is a speed multiplier: the editor divides animation durations by it, so users can speed up, slow down, or disable animations entirely. It defaults to `0` when the operating system reports `prefers-reduced-motion`.
+
+When animation speed is zero, `setCamera()`, `zoomToBounds()`, `zoomToFit()`, and the other camera-move methods jump straight to the target, and `slideCamera()` does nothing. `animateShape()` and `animateShapes()` do not check this preference. If you need reduced motion support for shape animations, check the animation speed yourself:
+
+```typescript
+if (editor.user.getAnimationSpeed() > 0) {
+	editor.animateShape(
+		{ id: shapeId, type: 'geo', x: 200, y: 100 },
+		{ animation: { duration: 500 } }
+	)
+} else {
+	editor.updateShape({ id: shapeId, type: 'geo', x: 200, y: 100 })
+}
+```
+
+## Related examples
+
+- [Shape animation](/examples/editor-api/shape-animation) - Animate shapes with `animateShape` and easing functions.
+- [Slideshow](/examples/use-cases/slideshow) - Transition between slides with `zoomToBounds` and animation options.
+- [Reduced motion](/examples/configuration/reduced-motion) - Respect the user's animation speed preference and `prefers-reduced-motion`.

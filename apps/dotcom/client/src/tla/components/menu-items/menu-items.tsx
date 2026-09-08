@@ -1,0 +1,457 @@
+import { useAuth } from '@clerk/clerk-react'
+import { fileOpen } from 'browser-fs-access'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+	TLDRAW_FILE_EXTENSION,
+	TldrawUiIcon,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
+	useDialogs,
+	useDirection,
+	useMaybeEditor,
+	useTranslation,
+	useUiEvents,
+	useValue,
+} from 'tldraw'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { routes } from '../../../routeDefs'
+import { signoutAnalytics } from '../../../utils/analytics'
+import { isDevelopmentEnv } from '../../../utils/env'
+import { UI_SURFACES } from '../../config/uiSurfaces'
+import { useMaybeApp } from '../../hooks/useAppState'
+import { UI_THEMES } from '../../themes/ui-themes'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
+import {
+	getLocalSessionState,
+	resetLocalSessionStateButKeepTheme,
+	setColorThemePreview,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
+import {
+	TLDRAW_OFFLINE_FILE_EXTENSION,
+	useRejectTldrawOfflineFiles,
+} from '../../utils/tldrawOfflineFiles'
+import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
+import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
+
+const messages = defineMessages({
+	help: { defaultMessage: 'Help' },
+	// user menu
+	accountMenu: { defaultMessage: 'User settings' },
+	signOut: { defaultMessage: 'Sign out' },
+	importFile: { defaultMessage: 'Import file…' },
+	// account menu
+	getHelp: { defaultMessage: 'User manual' },
+	legalSummary: { defaultMessage: 'Legal summary' },
+	terms: { defaultMessage: 'Terms of service' },
+	privacy: { defaultMessage: 'Privacy policy' },
+	cookiePolicy: { defaultMessage: 'Cookie policy' },
+	manageCookies: { defaultMessage: 'Manage cookies' },
+	about: { defaultMessage: 'About UnoCode' },
+	submitFeedback: { defaultMessage: 'Send feedback' },
+	// color theme
+	colorTheme: { defaultMessage: 'Color theme' },
+	colorThemeDefault: { defaultMessage: 'Default' },
+	// debug
+	appDebugFlags: { defaultMessage: 'App debug flags' },
+	langAccented: { defaultMessage: 'i18n: Accented' },
+	langLongString: { defaultMessage: 'i18n: Long String' },
+	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
+})
+
+export function SignOutMenuItem() {
+	const auth = useAuth()
+
+	const trackEvent = useTldrawAppUiEvents()
+
+	const label = useMsg(messages.signOut)
+
+	const handleSignout = useCallback(() => {
+		signoutAnalytics()
+		auth.signOut().then(resetLocalSessionStateButKeepTheme)
+		trackEvent('sign-out-clicked', { source: 'sidebar' })
+	}, [auth, trackEvent])
+
+	if (!auth.isSignedIn) return
+	return (
+		<TldrawUiMenuGroup id="account-actions">
+			<TldrawUiMenuItem
+				id="sign-out"
+				data-testid="tla-user-sign-out"
+				onSelect={handleSignout}
+				label={label}
+				readonlyOk
+			/>
+		</TldrawUiMenuGroup>
+	)
+}
+
+const COLOR_SCHEMES = [
+	{ colorScheme: 'light' as const, label: 'theme.light' },
+	{ colorScheme: 'dark' as const, label: 'theme.dark' },
+	{ colorScheme: 'system' as const, label: 'theme.system' },
+]
+
+function ThemeMenuGroup() {
+	const editor = useMaybeEditor()
+	const trackEvent = useUiEvents()
+	const currentColorScheme = useValue(
+		'colorScheme',
+		() =>
+			editor
+				? (editor.user.getUserPreferences().colorScheme ??
+					(editor.user.getIsDarkMode() ? 'dark' : 'light'))
+				: 'system',
+		[editor]
+	)
+
+	if (!editor) return null
+
+	return (
+		<TldrawUiMenuGroup id="theme">
+			{COLOR_SCHEMES.map(({ colorScheme, label }) => (
+				<TldrawUiMenuCheckboxItem
+					id={`color-scheme-${colorScheme}`}
+					key={colorScheme}
+					label={label}
+					checked={colorScheme === currentColorScheme}
+					readonlyOk
+					onSelect={() => {
+						editor.user.updateUserPreferences({ colorScheme })
+						trackEvent('color-scheme', { source: 'menu', value: colorScheme })
+					}}
+				/>
+			))}
+		</TldrawUiMenuGroup>
+	)
+}
+
+const THEME_NAMES: Record<string, string> = Object.fromEntries(
+	UI_THEMES.map(({ id, name }) => [id, name])
+)
+
+function UIThemeMenuCheckboxItem({
+	checked,
+	label,
+	onPreview,
+	onSelect,
+}: {
+	checked: boolean
+	label: string
+	onPreview(): void
+	onSelect(): void
+}) {
+	const dir = useDirection()
+	const msg = useTranslation()
+
+	return (
+		<_DropdownMenu.CheckboxItem
+			dir={dir}
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
+			title={label}
+			checked={checked}
+			onPointerEnter={(e) => {
+				if (e.pointerType !== 'touch') onPreview()
+			}}
+			onSelect={(e) => {
+				onSelect()
+				e.preventDefault()
+			}}
+		>
+			<TldrawUiIcon
+				small
+				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
+				icon={checked ? 'check' : 'none'}
+			/>
+			<span className="tlui-button__label" draggable={false}>
+				{label}
+			</span>
+		</_DropdownMenu.CheckboxItem>
+	)
+}
+
+export function UIThemeSubmenu() {
+	const editor = useMaybeEditor()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const trackEvent = useTldrawAppUiEvents()
+	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	const colorThemeLabel = useMsg(messages.colorTheme)
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+
+	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
+		editor,
+	])
+
+	useEffect(() => clearThemePreview, [clearThemePreview])
+
+	if (!editor || themeIds.length === 0) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
+			<div
+				className="tlui-menu__group"
+				onPointerCancel={clearThemePreview}
+				onPointerLeave={clearThemePreview}
+			>
+				{themeIds.map((id) => (
+					<UIThemeMenuCheckboxItem
+						key={id}
+						label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
+						checked={colorTheme === id}
+						onPreview={() => setColorThemePreview(id)}
+						onSelect={() => {
+							updateLocalSessionState(() => ({ colorTheme: id }))
+							clearThemePreview()
+							trackEvent('set-color-theme', {
+								source: 'user-preferences',
+								theme: id,
+							})
+						}}
+					/>
+				))}
+			</div>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function UIThemeMenuGroup() {
+	const editor = useMaybeEditor()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const trackEvent = useTldrawAppUiEvents()
+	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+
+	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
+		editor,
+	])
+
+	useEffect(() => clearThemePreview, [clearThemePreview])
+
+	if (!editor || themeIds.length === 0) return null
+
+	return (
+		<div
+			className="tlui-menu__group"
+			onPointerCancel={clearThemePreview}
+			onPointerLeave={clearThemePreview}
+		>
+			{themeIds.map((id) => (
+				<UIThemeMenuCheckboxItem
+					key={id}
+					label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
+					checked={colorTheme === id}
+					onPreview={() => setColorThemePreview(id)}
+					onSelect={() => {
+						updateLocalSessionState(() => ({ colorTheme: id }))
+						clearThemePreview()
+						trackEvent('set-color-theme', {
+							source: 'user-preferences',
+							theme: id,
+						})
+					}}
+				/>
+			))}
+		</div>
+	)
+}
+
+export function ThemeSubmenu() {
+	const editor = useMaybeEditor()
+	if (!editor) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="theme" label="menu.theme">
+			<div className="tlui-language-menu">
+				<ThemeMenuGroup />
+				<UIThemeMenuGroup />
+			</div>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+export function CookieConsentMenuItem() {
+	const { addDialog } = useDialogs()
+	return (
+		<TldrawUiMenuItem
+			id="cookie-consent"
+			label={useMsg(messages.manageCookies)}
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: () => <TlaManageCookiesDialog /> })
+			}}
+		/>
+	)
+}
+
+export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const label = useMsg(messages.getHelp)
+	if (!UI_SURFACES.userManual) return null
+	return (
+		<TldrawUiMenuItem
+			id="user-manual"
+			label={label}
+			iconLeft={icon ? 'manual' : undefined}
+			readonlyOk
+			onSelect={() => {
+				openAndTrack('https://tldraw.notion.site/support')
+			}}
+		/>
+	)
+}
+
+export function GiveUsFeedbackMenuItem() {
+	const { addDialog } = useDialogs()
+	const label = useMsg(messages.submitFeedback)
+	if (!UI_SURFACES.feedback) return null
+	return (
+		<TldrawUiMenuItem
+			id="give-us-feedback"
+			label={label}
+			iconLeft="comment"
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: SubmitFeedbackDialog })
+			}}
+		/>
+	)
+}
+
+export function LegalSummaryMenuItem() {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	return (
+		<TldrawUiMenuItem
+			id="tos"
+			label={useMsg(messages.legalSummary)}
+			readonlyOk
+			onSelect={() => {
+				openAndTrack('/legal.html')
+			}}
+		/>
+	)
+}
+
+export function ImportFileActionItem() {
+	const trackEvent = useTldrawAppUiEvents()
+	const app = useMaybeApp()
+
+	const navigate = useNavigate()
+
+	const importFileMsg = useMsg(messages.importFile)
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
+
+	return (
+		<TldrawUiMenuItem
+			id="about"
+			label={importFileMsg}
+			readonlyOk
+			onSelect={async () => {
+				const editor = getCurrentEditor()
+				if (!editor) return
+				if (!app) return
+
+				trackEvent('import-tldr-file', { source: 'account-menu' })
+
+				try {
+					// tldraw offline files are selectable so that we can explain why we can't open them
+					// yet. Leaving them out of the picker would just grey them out with no explanation.
+					const pickedFiles = await fileOpen({
+						extensions: [TLDRAW_FILE_EXTENSION, TLDRAW_OFFLINE_FILE_EXTENSION],
+						multiple: true,
+						description: 'UnoCode project',
+					})
+
+					const tldrawFiles = rejectTldrawOfflineFiles(pickedFiles)
+					if (!tldrawFiles.length) return
+
+					app.uploadTldrFiles(tldrawFiles, {
+						source: 'account-menu',
+						onFirstFileUploaded: (fileId) => {
+							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
+						},
+					})
+				} catch {
+					// user cancelled
+					return
+				}
+			}}
+		/>
+	)
+}
+
+export function DebugMenuGroup() {
+	const maybeEditor = useMaybeEditor()
+	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
+		maybeEditor,
+	])
+	// These are internal developer tools, so only surface them in local development —
+	// not on staging/preview deploys or to production users who enable debug mode.
+	if (!isDevelopmentEnv || !isDebugMode) return null
+
+	return <DebugSubmenu />
+}
+
+export function DebugSubmenu() {
+	const editor = useMaybeEditor()
+	const appFlagsLbl = useMsg(messages.appDebugFlags)
+
+	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
+		document.body.classList.contains('tla-lang-highlight-missing')
+	)
+	const debugLanguageFlags = [
+		{ name: useMsg(messages.langAccented), locale: 'xx-AE' },
+		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },
+		{ name: useMsg(messages.langHighlightMissing), locale: 'xx-MS' },
+	]
+
+	// Remember the user's real locale so an internal debug locale can be toggled back off.
+	// Falls back to 'en' if we load already stuck in a debug locale.
+	const previousLocale = useRef('en')
+	const currentLocale = editor?.user.getLocale() ?? 'en'
+	if (!isInternalLocale(currentLocale)) {
+		previousLocale.current = currentLocale
+	}
+
+	useEffect(() => {
+		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
+	}, [shouldHighlightMissing])
+
+	return (
+		<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
+			<TldrawUiMenuGroup id="debug app flags">
+				{debugLanguageFlags.map((flag) => (
+					<TldrawUiMenuCheckboxItem
+						key={flag.name}
+						id={flag.name}
+						title={flag.name}
+						label={flag.name
+							.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+							.replace(/^[a-z]/, (m) => m.toUpperCase())}
+						checked={
+							flag.locale === 'xx-MS'
+								? shouldHighlightMissing
+								: editor?.user.getLocale() === flag.locale
+						}
+						onSelect={() => {
+							if (flag.locale === 'xx-MS') {
+								setShouldHighlightMissing(!shouldHighlightMissing)
+							} else {
+								// Selecting the active locale again restores the user's real language.
+								const isActive = editor?.user.getLocale() === flag.locale
+								editor?.user.updateUserPreferences({
+									locale: isActive ? previousLocale.current : flag.locale,
+								})
+							}
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}

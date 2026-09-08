@@ -1,0 +1,396 @@
+/* ------------------- Top left panel ------------------- */
+
+.topLeftOfflineLogo {
+	color: var(--tl-color-text-0);
+	margin-top: -4px;
+	padding: 4px 8px 4px 10px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+}
+
+.topLeftPanel {
+	flex: 0 0 auto;
+	border-top: 4px solid var(--tl-color-background);
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	pointer-events: all;
+	white-space: nowrap;
+	background-color: var(--tl-color-background);
+	border-bottom-right-radius: 11px;
+	padding-left: 2px;
+	max-width: 100%;
+	min-width: 0px;
+	overflow: hidden;
+	color: var(--tl-color-text-0);
+}
+
+.topLeftPanelButtons {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	overflow: hidden;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.topLeftPanel > button:nth-last-of-type(1) {
+	position: relative;
+	z-index: 2;
+}
+
+.topLeftPanelSeparator {
+	color: var(--tl-color-text-3);
+	pointer-events: none;
+	padding: 0px 4px;
+	flex-shrink: 0;
+}
+
+.topLeftPanelSeparator:nth-last-of-type(1) {
+	margin-right: -4px;
+}
+
+.topLeftInputWrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	min-width: 64px;
+	height: 40px;
+	margin-left: -4px;
+	margin-right: -4px;
+	flex-shrink: 2;
+}
+
+@media (max-width: 550px) {
+	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftInputWrapper {
+		display: none;
+	}
+
+	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftPanelSeparator:has(+ .topLeftInputWrapper) {
+		display: none;
+	}
+}
+
+.topLeftInputWrapper > * {
+	width: 100%;
+	overflow: hidden;
+}
+
+.topLeftInputNameWidthSetter {
+	position: relative;
+	z-index: 1;
+	width: fit-content;
+	max-width: 320px;
+	width: 100%;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	opacity: 0;
+	pointer-events: none;
+	padding: 0px 12px;
+	font-weight: 800;
+	flex-shrink: 0;
+}
+
+.topLeftInputNameWidthSetter:focus-visible {
+	outline-offset: -4px;
+	border-radius: var(--uno-radius-control);
+}
+
+button.topLeftInputNameWidthSetter {
+	background: none;
+	border: none;
+	padding: none;
+	margin: none;
+	opacity: 1;
+	pointer-events: all;
+	height: 100%;
+	min-width: 0px;
+	color: var(--tl-color-text-0);
+}
+
+.topLeftInputWrapper > div:nth-of-type(1) {
+	position: absolute;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+}
+
+.topLeftInputWrapper input {
+	position: relative;
+	padding: 0px 12px 1px 12px;
+	height: 100%;
+	font-weight: 800;
+	color: var(--tl-color-text-0);
+}
+
+.topLeftInputWrapper input:focus-visible {
+	outline: 1px solid var(--tl-color-primary);
+	border-radius: var(--uno-radius-control);
+	outline-offset: -5px;
+}
+
+.topLeftInputWrapperEditable::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 4px;
+	background-color: transparent;
+	border-radius: var(--uno-radius-control);
+}
+
+.topLeftInputWrapperEditable button {
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.topLeftInputWrapperEditable:hover:not(:focus-within)::after {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+/* ---------------- Workspace breadcrumb ---------------- */
+
+/* The workspace half of "workspace / board / page". Sized to shrink before the board name
+   does: which board you're on matters more than which workspace, and the workspace is also
+   named in the sidebar. */
+.topLeftWorkspaceTrigger {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 32px;
+	padding: 0px 6px 0px 8px;
+	margin-left: 2px;
+	min-width: 0px;
+	flex-shrink: 3;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-0);
+	border-radius: var(--uno-radius-control);
+	transition: background-color var(--uno-duration) var(--uno-ease);
+}
+
+.topLeftWorkspaceTrigger:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -2px;
+}
+
+@media (hover: hover) {
+	.topLeftWorkspaceTrigger:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.topLeftWorkspaceTrigger[data-state='open'] {
+	background-color: var(--tl-color-muted-2);
+}
+
+.topLeftWorkspaceSwatch {
+	flex: 0 0 auto;
+	width: 12px;
+	height: 12px;
+	border-radius: 4px;
+}
+
+.topLeftWorkspaceName {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0px;
+}
+
+.topLeftWorkspaceChevron {
+	flex: 0 0 auto;
+	color: var(--tl-color-text-3);
+}
+
+/* Below the board name's own breakpoint the crumb would push the name off the panel, and the
+   sidebar still names the workspace. */
+@media (max-width: 720px) {
+	.topLeftWorkspaceName,
+	.topLeftWorkspaceChevron {
+		display: none;
+	}
+
+	.topLeftWorkspaceTrigger {
+		padding: 0px 8px;
+	}
+}
+
+/* -------------------- Main Menu ------------------- */
+
+.topLeftMainMenuTrigger {
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tl-color-text-3);
+	flex: 0 0 auto;
+	z-index: 3;
+	padding: 0px;
+	cursor: pointer;
+	margin-left: -4px;
+}
+
+.topLeftMainMenuTrigger:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -5px;
+	border-radius: var(--uno-radius-control);
+}
+
+.topLeftMainMenuTrigger::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--uno-radius-control);
+}
+
+@media (hover: hover) {
+	.topLeftMainMenuTrigger:hover {
+		color: var(--tl-color-text-0);
+	}
+
+	.topLeftMainMenuTrigger:hover::after {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.topLeftMainMenuTrigger[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
+/* ------------------- Top right ------------------ */
+
+/* Sit the comments toggle on a canvas-coloured chip like the other top-right canvas buttons, so
+   it reads as part of the same row rather than floating bare over the canvas. */
+.commentsSidebarButton {
+	background-color: var(--tl-color-background);
+	border-radius: var(--uno-radius-control);
+	/* A 36px square matching the share button; min-width because the base button's 40px would
+	   beat width. */
+	height: 36px;
+	width: 36px;
+	min-width: 36px;
+}
+
+/* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
+.commentsSidebarButton::after {
+	inset: 2px;
+}
+
+/* The comments sidebar toggle shows the same open wash as the main menu trigger while the
+   sidebar it controls is open. */
+.commentsSidebarButton[aria-pressed='true']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
+/* The account and theme buttons: same chip as the comments toggle, so the top-right row reads
+   as one set of controls rather than icons floating on the canvas. */
+.topRightIconButton {
+	background-color: var(--tl-color-background);
+	border-radius: var(--uno-radius-control);
+	height: 36px;
+	width: 36px;
+	min-width: 36px;
+	color: var(--tl-color-text-1);
+}
+
+.topRightIconButton::after {
+	inset: 2px;
+}
+
+@media (hover: hover) {
+	.topRightIconButton:hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+.topRightPanel {
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+	padding-top: 4px;
+	padding-right: 6px;
+}
+
+@media (max-width: 767px) {
+	.topRightPanel {
+		padding-right: 4px;
+	}
+}
+
+/* ------------- Signed out share button ------------ */
+
+.topRightAnonShareButton {
+	margin-top: 1px;
+	flex: 0 0 auto;
+	position: relative;
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	z-index: 1;
+	color: var(--tl-color-text-0);
+}
+
+.topRightAnonShareButton::before {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 2px 2px;
+	border-radius: var(--uno-radius-control);
+	z-index: 0;
+	pointer-events: none;
+}
+
+.topRightAnonShareButton::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: var(--uno-radius-control);
+	background-color: var(--tl-color-muted-0);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.topRightAnonShareButton[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	visibility: visible;
+}
+
+@media (hover: hover) {
+	.topRightAnonShareButton:hover::after {
+		visibility: visible;
+	}
+}
+
+@media (max-width: 550px) {
+	.topRightAnonShareButton {
+		display: none;
+	}
+}

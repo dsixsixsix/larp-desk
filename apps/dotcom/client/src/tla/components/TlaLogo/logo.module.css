@@ -1,0 +1,11 @@
+.logo {
+	display: flex;
+	position: relative;
+	flex-shrink: 0;
+	background-color: var(--uno-color-brand);
+	height: 19px;
+	width: 34px;
+	z-index: 1;
+	pointer-events: none;
+	color: inherit;
+}

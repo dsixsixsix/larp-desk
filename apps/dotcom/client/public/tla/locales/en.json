@@ -1,0 +1,1038 @@
+{
+  "0095a9fa74": {
+    "translation": "Export"
+  },
+  "00b177e080": {
+    "translation": "Accept invitation"
+  },
+  "00cd7be4cb": {
+    "translation": "Mute"
+  },
+  "029f235f01": {
+    "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
+  },
+  "035c7f669a": {
+    "translation": "Test microphone"
+  },
+  "03b3e13197": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+  },
+  "043973ec1f": {
+    "translation": "Still having trouble? {GetHelpLink}"
+  },
+  "0490b97de6": {
+    "translation": "Talking"
+  },
+  "04a2dd56d6": {
+    "translation": "Invite teammates"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> mentioned you"
+  },
+  "05f43078e9": {
+    "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
+  },
+  "06b9281e39": {
+    "translation": "Auto"
+  },
+  "07b45f61c6": {
+    "translation": "The microphone is being used by another app. Close it and try again."
+  },
+  "07dbd11b21": {
+    "translation": "Untitled file"
+  },
+  "08331c1710": {
+    "translation": "Rate limit exceeded, try again later."
+  },
+  "08bd40c754": {
+    "translation": "Account"
+  },
+  "093ac7483a": {
+    "translation": "Can’t open {extension} files yet"
+  },
+  "099f95b585": {
+    "translation": "Hold to talk (V)"
+  },
+  "0a0afb3424": {
+    "translation": "Switch to dark theme"
+  },
+  "0a91f7fa87": {
+    "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+  },
+  "0b27918290": {
+    "translation": "File"
+  },
+  "0b4f0a9479": {
+    "translation": "Couldn't load this file."
+  },
+  "0b9a4cde72": {
+    "translation": "File menu"
+  },
+  "0c4383617a": {
+    "translation": "Something went wrong loading this invite. Please try again."
+  },
+  "0d1f2bb523": {
+    "translation": "Send feedback"
+  },
+  "0fef24d5ea": {
+    "translation": "Copy link to this board"
+  },
+  "105b296a83": {
+    "translation": "Pause"
+  },
+  "1063e38cb5": {
+    "translation": "Remove"
+  },
+  "10fb1df194": {
+    "translation": "Copy to personal workspace"
+  },
+  "110a4b01be": {
+    "translation": "Publish"
+  },
+  "11a755d598": {
+    "translation": "Stop"
+  },
+  "12a6766ba1": {
+    "translation": "Unpin file"
+  },
+  "134eb0a6cd": {
+    "translation": "Play back"
+  },
+  "13ddd375ad": {
+    "translation": "Export as"
+  },
+  "14b03eeeb5": {
+    "translation": "Notification options"
+  },
+  "15effbebe8": {
+    "translation": "UnoCode"
+  },
+  "160893308c": {
+    "translation": "This browser can't choose an output device — using the system default."
+  },
+  "1621ceeec7": {
+    "translation": "Open UnoCode"
+  },
+  "16f665a458": {
+    "translation": "{count} more"
+  },
+  "1712e980c7": {
+    "translation": "Voice chat"
+  },
+  "181b90f889": {
+    "translation": "Create file"
+  },
+  "1c27204723": {
+    "translation": "Jane Doe"
+  },
+  "1da2e8106b": {
+    "translation": "An unexpected error occurred."
+  },
+  "1dd1c5fb7f": {
+    "translation": "Today"
+  },
+  "1ffd709937": {
+    "translation": "A workspace must keep at least one owner. Make someone else an owner first."
+  },
+  "204ebb2cb0": {
+    "translation": "Browsers only allow microphone access over https or on localhost. Open the app on one of those."
+  },
+  "21f66c9c00": {
+    "translation": "Workspace name"
+  },
+  "221e705c06": {
+    "translation": "Your name"
+  },
+  "22cc65fdfc": {
+    "translation": "Speaker"
+  },
+  "231246f83c": {
+    "translation": "Playing…"
+  },
+  "23dcace54a": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
+  },
+  "273b65a875": {
+    "translation": "The address you signed in with. Change it from your sign-in provider."
+  },
+  "273b6b8e5c": {
+    "translation": "Microphone access was denied. Allow it in your browser settings to test."
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> commented on your board"
+  },
+  "27a9427cc1": {
+    "translation": "Enter your name and email so your work is attributed to you."
+  },
+  "28d0edd045": {
+    "translation": "Low"
+  },
+  "299cb00a7a": {
+    "translation": "Upload failed"
+  },
+  "2a1167f869": {
+    "translation": "Welcome to your workspace"
+  },
+  "2a37324bb4": {
+    "translation": "Search..."
+  },
+  "2b42f15a18": {
+    "translation": "{count, plural, one {# person} other {# people}} on this board"
+  },
+  "2b81bb9b3d": {
+    "translation": "Frames"
+  },
+  "2c539260ad": {
+    "translation": "Change or withdraw the analytics cookie choice you made on your first visit."
+  },
+  "2c9f79d160": {
+    "translation": "Close player"
+  },
+  "2cc9187af1": {
+    "translation": "Microphone"
+  },
+  "2de510be71": {
+    "translation": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
+  },
+  "2df04e58c1": {
+    "translation": "Noise suppression"
+  },
+  "2e2b3c700b": {
+    "translation": "Include link to current file"
+  },
+  "2e9856a31e": {
+    "translation": "Regenerate invite link"
+  },
+  "31246941ad": {
+    "translation": "You need to sign in to view this file."
+  },
+  "31418ce4ad": {
+    "translation": "i18n: Highlight Missing"
+  },
+  "31a5bcc383": {
+    "translation": "Something went wrong. Try again."
+  },
+  "31fde7b05a": {
+    "translation": "Preview"
+  },
+  "333cff4fa4": {
+    "translation": "Higher settings cut more background noise, but can clip the start of quiet speech."
+  },
+  "335defdafe": {
+    "translation": "Please try refreshing the page."
+  },
+  "344a7f427f": {
+    "translation": "Editor"
+  },
+  "34e2d1989a": {
+    "translation": "Video"
+  },
+  "34e34c43ec": {
+    "translation": "Manage"
+  },
+  "352a772d77": {
+    "translation": "Reset local data"
+  },
+  "36ee841ed2": {
+    "translation": "No microphone was found. Check that one is plugged in."
+  },
+  "375396d6e5": {
+    "translation": "Remove member"
+  },
+  "3a44ce48c3": {
+    "translation": "A new version of UnoCode is available. Please reload the page to continue."
+  },
+  "3a7eb63385": {
+    "translation": "Create a free account to save your files and collaborate with your teammates."
+  },
+  "3b0d2f8fda": {
+    "translation": "Thanks for helping us improve UnoCode!"
+  },
+  "3b470c1f6a": {
+    "translation": "No matches"
+  },
+  "3bb3e8c8a2": {
+    "translation": "Frame"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Continue with email"
+  },
+  "3bd1b98dbd": {
+    "translation": "Unable to publish the changes."
+  },
+  "3c5e891bff": {
+    "translation": "Pinned"
+  },
+  "3d0238bf16": {
+    "translation": "Accept all"
+  },
+  "3e2ae04ff0": {
+    "translation": "Unsupported Mermaid diagram"
+  },
+  "402bf0c47e": {
+    "translation": "Color theme"
+  },
+  "42e53c47c1": {
+    "translation": "Contact the owner to request access."
+  },
+  "43e5f82016": {
+    "translation": "Edit the document directly. The copy you download keeps text, headings, lists, tables and images — anything else Word stored (footnotes, comments, page layout) is not carried over."
+  },
+  "4436eeb466": {
+    "translation": "Have a bug, issue, or idea for UnoCode? Let us know! Fill out this form and we will follow up over email if needed."
+  },
+  "44db318ee5": {
+    "translation": "Get help on Discord"
+  },
+  "454761c561": {
+    "translation": "Unmute"
+  },
+  "454aad3b3c": {
+    "translation": "Are you sure you want to delete <strong>{fileName}</strong>?"
+  },
+  "46de2de6bb": {
+    "translation": "Accept terms of use"
+  },
+  "477df802ca": {
+    "translation": "To continue editing please copy the file to your files."
+  },
+  "47f493a590": {
+    "translation": "Pin file"
+  },
+  "49ee308734": {
+    "translation": "Name"
+  },
+  "4b0e37a2df": {
+    "translation": "This version of UnoCode is no longer supported."
+  },
+  "4bc52f0db2": {
+    "translation": "The microphone is muted until you hold the talk key (V)."
+  },
+  "4d0d3ddec9": {
+    "translation": "This site uses cookies to make the app work and to collect analytics."
+  },
+  "4d1c8263ba": {
+    "translation": "Reload"
+  },
+  "4fca794da0": {
+    "translation": "you@example.com"
+  },
+  "5097d89907": {
+    "translation": "Unsupported diagram, will generate SVG instead"
+  },
+  "50db1b7e1e": {
+    "translation": "Unable to unpublish the file."
+  },
+  "51317dcad5": {
+    "translation": "This is your private workspace. Create a new workspace to invite teammates."
+  },
+  "517bb809d9": {
+    "translation": "Page menu"
+  },
+  "5289bf1575": {
+    "translation": "Revert"
+  },
+  "53770fd374": {
+    "translation": "Unread"
+  },
+  "542248f0ba": {
+    "translation": "This file is now read-only"
+  },
+  "54286b1d01": {
+    "translation": "Collaborator limit reached"
+  },
+  "545241e7dd": {
+    "translation": "{count} unread"
+  },
+  "554a05155c": {
+    "translation": "Still having trouble? <a>Report a problem</a>"
+  },
+  "55505ba281": {
+    "translation": "PNG"
+  },
+  "5587e2760a": {
+    "translation": "Board name"
+  },
+  "55b890b4cd": {
+    "translation": "Everything you make here lives in this browser, and stays until you clear it. This deletes every board and its contents, and asks for your name again."
+  },
+  "5638176be5": {
+    "translation": "Create a workspace"
+  },
+  "56c34c6410": {
+    "translation": "Privacy policy"
+  },
+  "5863d63d13": {
+    "translation": "{seconds}s"
+  },
+  "58a9e98423": {
+    "translation": "Nothing has happened yet"
+  },
+  "5a95a425f7": {
+    "translation": "Share"
+  },
+  "5bec508475": {
+    "translation": "Old browser detected. Please update your browser to use this app."
+  },
+  "5bff3c9c88": {
+    "translation": "My workspace"
+  },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reacted to your comment"
+  },
+  "5d04a002ea": {
+    "translation": "Unable to connect"
+  },
+  "5d26ae7550": {
+    "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5d331dad52": {
+    "translation": "Push to talk"
+  },
+  "5de2f0329f": {
+    "translation": "Board outline"
+  },
+  "5f02f05c74": {
+    "translation": "Loading…"
+  },
+  "5f3c333678": {
+    "translation": "Feedback submitted"
+  },
+  "5fb63579fc": {
+    "translation": "Copy"
+  },
+  "606ec778e2": {
+    "translation": "Recording… say something"
+  },
+  "608e9d366e": {
+    "translation": "You’re all caught up."
+  },
+  "60a68c29d6": {
+    "translation": "Sign in to comment"
+  },
+  "61057a0c84": {
+    "translation": "Later"
+  },
+  "61ebf2173b": {
+    "translation": "This file type can't be previewed yet. Download it to view the contents."
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
+  },
+  "625fd29749": {
+    "translation": "Older"
+  },
+  "639bae9ac6": {
+    "translation": "you"
+  },
+  "63a6a88c06": {
+    "translation": "Refresh"
+  },
+  "655d20c1ca": {
+    "translation": "High"
+  },
+  "6609dd239e": {
+    "translation": "Something went wrong"
+  },
+  "6686793f54": {
+    "translation": "Shown next to your cursor when you work with other people."
+  },
+  "681e10aecb": {
+    "translation": "New file"
+  },
+  "6832ac5936": {
+    "translation": "Enter your email address"
+  },
+  "686e697538": {
+    "translation": "Create"
+  },
+  "694f82ed9d": {
+    "translation": "Delete workspace"
+  },
+  "6a26f54883": {
+    "translation": "Help"
+  },
+  "6cfcb34259": {
+    "translation": "About UnoCode"
+  },
+  "6dc0836c1b": {
+    "translation": "You do not have the necessary permissions to perform this action."
+  },
+  "6dfc62f621": {
+    "translation": "Follow these steps to import the content manually:"
+  },
+  "70a6facb9d": {
+    "translation": "This week"
+  },
+  "7408cf0d7b": {
+    "translation": "Please reload the page"
+  },
+  "74ff4bad28": {
+    "translation": "No files found"
+  },
+  "752b79f137": {
+    "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
+  "7542d62aac": {
+    "translation": "Mark all as read"
+  },
+  "7573b8110a": {
+    "translation": "No access"
+  },
+  "761e93ede9": {
+    "translation": "Manage cookies"
+  },
+  "7697920637": {
+    "translation": "Please reload"
+  },
+  "777f9e90cf": {
+    "translation": "Invalid request."
+  },
+  "78e9815992": {
+    "translation": "Got it"
+  },
+  "795ecaf4a3": {
+    "translation": "This anonymous multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
+  },
+  "7a1920d611": {
+    "translation": "Default"
+  },
+  "7b1329f5ca": {
+    "translation": "User manual"
+  },
+  "7be10fc592": {
+    "translation": "Restore version"
+  },
+  "7cb5f8b4a5": {
+    "translation": "Forget"
+  },
+  "7daeced9ff": {
+    "translation": "Publish changes"
+  },
+  "7dce122004": {
+    "translation": "Edit"
+  },
+  "7e6c11c036": {
+    "translation": "Join voice chat"
+  },
+  "7fcdcc6455": {
+    "translation": "Forget file"
+  },
+  "801ab24683": {
+    "translation": "Download"
+  },
+  "8030793ce3": {
+    "translation": "New workspace"
+  },
+  "811ac93e80": {
+    "translation": "No microphone found"
+  },
+  "81666c6e4a": {
+    "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
+  },
+  "81fd6ff1f2": {
+    "translation": "Microphone access was denied. Allow it in your browser settings."
+  },
+  "8413c683b4": {
+    "translation": "Comments"
+  },
+  "858ba4765e": {
+    "translation": "Member"
+  },
+  "85fb277771": {
+    "translation": "Have a bug, issue, or idea for UnoCode? Let us know!"
+  },
+  "86353d2c41": {
+    "translation": "Added {total} .tldr files."
+  },
+  "86c66437fd": {
+    "translation": "Rename file"
+  },
+  "874957956c": {
+    "translation": "Built on the tldraw SDK"
+  },
+  "87f8a6ab85": {
+    "translation": "Medium"
+  },
+  "87fdb09de6": {
+    "translation": "You are already a member of this workspace"
+  },
+  "88bf6ab42c": {
+    "translation": "This invite link has expired"
+  },
+  "8916ab0bb1": {
+    "translation": "Boards"
+  },
+  "8b481ddfe4": {
+    "translation": "Local data"
+  },
+  "8b97e99237": {
+    "translation": "Search text and files on the board"
+  },
+  "8c2d3d730c": {
+    "translation": "Check your email for a verification code."
+  },
+  "8d19becea6": {
+    "translation": "Delete every board and start over?"
+  },
+  "8eb2c00e96": {
+    "translation": "Shared with you"
+  },
+  "8ff3d0a705": {
+    "translation": "Rate limited"
+  },
+  "902b0d55fd": {
+    "translation": "Error"
+  },
+  "902e3b029f": {
+    "translation": "Open mic"
+  },
+  "902f2ecbcb": {
+    "translation": "Input volume"
+  },
+  "904a830405": {
+    "translation": "Rename"
+  },
+  "90646db02d": {
+    "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
+  },
+  "91f3a2c0e4": {
+    "translation": "Files"
+  },
+  "95aacd4d4a": {
+    "translation": "Sign in with Google"
+  },
+  "96165d6df5": {
+    "translation": "This month"
+  },
+  "985a4b720f": {
+    "translation": "Terms of Use"
+  },
+  "9914a0ce04": {
+    "translation": "Light"
+  },
+  "9983381c21": {
+    "translation": "Clear search"
+  },
+  "9a889711e5": {
+    "translation": "This file's contents aren't stored in this browser."
+  },
+  "9b33f5c63c": {
+    "translation": "Didn’t receive a code? <resend>Resend</resend>."
+  },
+  "9bef626805": {
+    "translation": "Delete file"
+  },
+  "9c228b6834": {
+    "translation": "You appear to be offline. Check your connection and try again."
+  },
+  "9ccb565b86": {
+    "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
+  },
+  "9ceb927baa": {
+    "translation": "Publish this file"
+  },
+  "9dffbf69ff": {
+    "translation": "Text"
+  },
+  "9e076f5885": {
+    "translation": "Not found"
+  },
+  "9e26471d35": {
+    "translation": "jane@example.com"
+  },
+  "9e93c98d88": {
+    "translation": "Opt out"
+  },
+  "9ea038d530": {
+    "translation": "This is the name shown on your cursor to everyone on the board."
+  },
+  "9eff0a15b6": {
+    "translation": "Switch workspace or board"
+  },
+  "a078644c42": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>."
+  },
+  "a0bfb8e59e": {
+    "translation": "Continue"
+  },
+  "a0da245992": {
+    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
+  },
+  "a104439641": {
+    "translation": "Padding"
+  },
+  "a120f28da7": {
+    "translation": "The microphone is live, and the noise gate decides what is sent."
+  },
+  "a18366b217": {
+    "translation": "Dark"
+  },
+  "a1c915578c": {
+    "translation": "The file you are looking for does not exist."
+  },
+  "a239905023": {
+    "translation": "Export image"
+  },
+  "a274f4d467": {
+    "translation": "Notifications"
+  },
+  "a3ab761dcc": {
+    "translation": "{workspace} / {board}"
+  },
+  "a3debabee7": {
+    "translation": "Cookie policy"
+  },
+  "a4d3b161ce": {
+    "translation": "Submit"
+  },
+  "a52945dbe2": {
+    "translation": "Leave"
+  },
+  "a6cc403d56": {
+    "translation": "Anyone with the link"
+  },
+  "a768caa988": {
+    "translation": "Analytics"
+  },
+  "a8873770ab": {
+    "translation": "File is getting large"
+  },
+  "a9ded1e5ce": {
+    "translation": "Background"
+  },
+  "aa56a2e65d": {
+    "translation": "Elements"
+  },
+  "aac449eef6": {
+    "translation": "Create workspace"
+  },
+  "aaec8f7cde": {
+    "translation": "Someone"
+  },
+  "ab0df9ba36": {
+    "translation": "File limit reached"
+  },
+  "ab1be8fff4": {
+    "translation": "Voice chat couldn't start"
+  },
+  "acf84eea1e": {
+    "translation": "Link copied"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Last published <date></date>"
+  },
+  "b028909917": {
+    "translation": "Guest user"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> replied"
+  },
+  "b1c94ca2fb": {
+    "translation": "All"
+  },
+  "b22f0418e8": {
+    "translation": "Audio"
+  },
+  "b2326c3a34": {
+    "translation": "Regenerate"
+  },
+  "b2c3c2e30c": {
+    "translation": "File is full"
+  },
+  "b357b524e7": {
+    "translation": "Email address"
+  },
+  "b48becc771": {
+    "translation": "Enable invites"
+  },
+  "b5a7adde1a": {
+    "translation": "Description"
+  },
+  "b6d4223e60": {
+    "translation": "Sign in"
+  },
+  "b6f4a2ec63": {
+    "translation": "Owner"
+  },
+  "b758336699": {
+    "translation": "Copy link"
+  },
+  "b78c0b8778": {
+    "translation": "Leave voice chat"
+  },
+  "ba840f74cc": {
+    "translation": "This file can't be played."
+  },
+  "bbaaf8b6bf": {
+    "translation": "Invites are disabled"
+  },
+  "bbbcefd7ce": {
+    "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
+  },
+  "bc88b0e89e": {
+    "translation": "Shared by {ownerName}"
+  },
+  "bc9e270b7b": {
+    "translation": "Display name"
+  },
+  "bf49a2af93": {
+    "translation": "Before you start"
+  },
+  "c04b545bf3": {
+    "translation": "Starting…"
+  },
+  "c08969ef08": {
+    "translation": "System default"
+  },
+  "c0c07aab0b": {
+    "translation": "+{count}"
+  },
+  "c17466812d": {
+    "translation": "Manage workspace"
+  },
+  "c2276c9127": {
+    "translation": "Learn more about sharing."
+  },
+  "c303bd1095": {
+    "translation": "Unable to publish the file."
+  },
+  "c3bf447eab": {
+    "translation": "Open"
+  },
+  "c4b39a1cc3": {
+    "translation": "Essential cookies"
+  },
+  "c65304f107": {
+    "translation": "Always on"
+  },
+  "c655b27b1e": {
+    "translation": "i18n: Long String"
+  },
+  "c6a00f137b": {
+    "translation": "Invite"
+  },
+  "c6f16003f2": {
+    "translation": "Copy to my workspace"
+  },
+  "c7d7403714": {
+    "translation": "New board"
+  },
+  "c87aacf567": {
+    "translation": "Sign out"
+  },
+  "c8a59e7135": {
+    "translation": "Dismiss"
+  },
+  "c921b8c0eb": {
+    "translation": "Add a description for this file…"
+  },
+  "c9cc8cce24": {
+    "translation": "Save"
+  },
+  "cae8d14edd": {
+    "translation": "You"
+  },
+  "ccd1f88dd1": {
+    "translation": "Nothing here yet"
+  },
+  "ccdc288494": {
+    "translation": "Couldn't reach a microphone."
+  },
+  "cce99c598c": {
+    "translation": "Profile"
+  },
+  "cceaefbc20": {
+    "translation": "Share this file"
+  },
+  "cd15a75c26": {
+    "translation": "SVG"
+  },
+  "cd8c6e3779": {
+    "translation": "Please refresh the page to get the latest version of UnoCode."
+  },
+  "ce0547606c": {
+    "translation": "This file is approaching its size limit. Consider removing some content or starting a new file."
+  },
+  "ce8ae9da5b": {
+    "translation": "Email"
+  },
+  "cea291e45e": {
+    "translation": "Learn more about publishing."
+  },
+  "cf566b5b99": {
+    "translation": "Back to UnoCode"
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
+  "d3d2e61733": {
+    "translation": "Close"
+  },
+  "d46632fe1f": {
+    "translation": "Too many requests. Please slow down."
+  },
+  "d4bbf74f3e": {
+    "translation": "Toggle sidebar"
+  },
+  "d5e92609cf": {
+    "translation": "Workspaces"
+  },
+  "d638a3344b": {
+    "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
+  },
+  "d721757161": {
+    "translation": "Theme"
+  },
+  "d876a9fe1a": {
+    "translation": "Try Again"
+  },
+  "d88ad2dc74": {
+    "translation": "Accept and continue"
+  },
+  "d9100f3e10": {
+    "translation": "Go here to see the content"
+  },
+  "db28b432b4": {
+    "translation": "Stored in this browser only. There is no account to sign in to."
+  },
+  "dbbebf3c03": {
+    "translation": "Invite only"
+  },
+  "dbf9b24193": {
+    "translation": "Leave workspace"
+  },
+  "dc96deda1c": {
+    "translation": "Record again"
+  },
+  "dd4361665d": {
+    "translation": "{name} is speaking"
+  },
+  "de3c731be5": {
+    "translation": "Play"
+  },
+  "dfdb78a4e4": {
+    "translation": "App debug flags"
+  },
+  "dfe44a7c11": {
+    "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve UnoCode."
+  },
+  "e0aa021e21": {
+    "translation": "OK"
+  },
+  "e2198d6228": {
+    "translation": "Copy invite link"
+  },
+  "e2ae80a510": {
+    "translation": "Legal summary"
+  },
+  "e404559826": {
+    "translation": "Terms of service"
+  },
+  "e472458a80": {
+    "translation": "Switch to light theme"
+  },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
+  },
+  "e81c4e4f2b": {
+    "translation": "or"
+  },
+  "ea05521523": {
+    "translation": "Microphone mode"
+  },
+  "ea4788705e": {
+    "translation": "Cancel"
+  },
+  "eb1e2b0542": {
+    "translation": "Ask the workspace owner for a new one."
+  },
+  "ebfe9ce86e": {
+    "translation": "Yesterday"
+  },
+  "ec59b960ea": {
+    "translation": "This file has reached the maximum number of active collaborators."
+  },
+  "ec611e9a08": {
+    "translation": "Account menu"
+  },
+  "ed53713239": {
+    "translation": "i18n: Accented"
+  },
+  "ed75712b0e": {
+    "translation": "Duplicate"
+  },
+  "ed7ecb1dbb": {
+    "translation": "Seek"
+  },
+  "ede55d955f": {
+    "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "edec9387f9": {
+    "translation": "This comment was deleted."
+  },
+  "ef53538ae4": {
+    "translation": "Members"
+  },
+  "ef7de3f485": {
+    "translation": "selected"
+  },
+  "f0e8bff6f9": {
+    "translation": "User settings"
+  },
+  "f1dc8b632d": {
+    "translation": "We use analytics cookies to make UnoCode better."
+  },
+  "f2569594b2": {
+    "translation": "We use these cookies to save your files and settings."
+  },
+  "f2a6c498fb": {
+    "translation": "Delete"
+  },
+  "f2f9a2e98d": {
+    "translation": "Workspace menu"
+  },
+  "f3534345bc": {
+    "translation": "Download a copy"
+  },
+  "f3c8149d77": {
+    "translation": "Delete “{name}” and every board in it?"
+  },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
+  "f4f70727dc": {
+    "translation": "Settings"
+  },
+  "f5ddc8d9c1": {
+    "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
+  },
+  "f6e64631bf": {
+    "translation": "Delete “{name}” and everything on it?"
+  },
+  "f7ceab16b0": {
+    "translation": "Recent activity"
+  },
+  "f915a95e60": {
+    "translation": "Try again"
+  },
+  "fa2ead697d": {
+    "translation": "Privacy Policy"
+  },
+  "fb15c53f22": {
+    "translation": "Viewer"
+  },
+  "fc9d47046b": {
+    "translation": "Are you sure you want to leave this workspace?"
+  },
+  "fed5ec05eb": {
+    "translation": "Copied link"
+  },
+  "ff2fefd3c6": {
+    "translation": "Are you sure you want to remove {name} from this workspace?"
+  },
+  "ffcd73e997": {
+    "translation": "Import file…"
+  }
+}

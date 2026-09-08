@@ -1,0 +1,7 @@
+.CustomClipping-toggle {
+	position: absolute;
+	top: 64px;
+	left: 12px;
+	pointer-events: all;
+	z-index: 1000;
+}
