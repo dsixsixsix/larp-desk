@@ -62,6 +62,16 @@ export interface Environment {
 
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
+	// The voice mesh's ICE configuration (see utils/iceServers.ts). Environment-driven so the relay
+	// can change without a code change. Without TURN_URLS voice is STUN-only, which connects the
+	// ordinary home-router case and nothing behind symmetric NAT, a UDP-blocking firewall, or a VPN.
+	TURN_URLS: string | undefined
+	// How to authenticate to those relays, as one string so swapping relays is one secret to change:
+	// `secret:<shared secret>` for a coturn in --use-auth-secret mode, or
+	// `static:<username>:<credential>` for a relay that only issues long-term credentials.
+	TURN_AUTH: string | undefined
+	STUN_URLS: string | undefined
+
 	// env vars
 	SUPABASE_URL: string | undefined
 	SUPABASE_KEY: string | undefined
@@ -75,6 +85,8 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+	/** Shared with the asset upload worker, which accepts POSTs from nobody else. A wrangler secret. */
+	ASSET_UPLOAD_SECRET: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
 

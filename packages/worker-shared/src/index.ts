@@ -12,8 +12,11 @@ export {
 	type ApiRouter,
 } from './handleRequest'
 export { blockUnknownOrigins, isAllowedOrigin } from './origins'
+export { parsePublicHttpUrl } from './publicUrl'
 export { createSentry, type SentryEnvironment } from './sentry'
+export { checkUploadRateLimit, getRateLimitKey, type RateLimiterBinding } from './uploadRateLimit'
 export {
+	MAX_ASSET_UPLOAD_BYTES,
 	TRANSIENT_RETRY_OPTIONS,
 	handleUserAssetGet,
 	handleUserAssetUpload,

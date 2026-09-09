@@ -55,6 +55,7 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
+	'ASSET_UPLOAD_SECRET',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -82,6 +83,12 @@ const env = makeEnv([
 	'SUPABASE_LITE_URL',
 	'TLDRAW_ENV',
 	'TLDRAW_LICENSE',
+	// The voice mesh's TURN relay. Required, not optional: without a relay, voice chat is silent for
+	// everyone behind symmetric NAT, a UDP-blocking firewall or a VPN, and a deployment that merely
+	// degrades would hide that. TURN_AUTH carries either a coturn shared secret or a
+	// `username:credential` pair — see utils/iceServers.ts in the sync worker.
+	'TURN_URLS',
+	'TURN_AUTH',
 	'VERCEL_ORG_ID',
 	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
@@ -511,6 +518,10 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 			SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
+			// Both ends of the check on this worker's POST route, which is on a public domain and
+			// takes writes from the sync worker alone. Deploying one side without the other loses
+			// bookmark preview images; see `denyUnlessInternalCaller`.
+			ASSET_UPLOAD_SECRET: env.ASSET_UPLOAD_SECRET,
 		},
 		sentry: {
 			project: 'asset-upload-worker',
@@ -585,6 +596,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
+			ASSET_UPLOAD_SECRET: env.ASSET_UPLOAD_SECRET,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
@@ -600,6 +612,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
 			MCP_SCREENSHOT_TOKEN_SECRET: env.MCP_SCREENSHOT_TOKEN_SECRET,
+			TURN_URLS: env.TURN_URLS,
+			TURN_AUTH: env.TURN_AUTH,
 			// Previews render thumbnails from their own client origin. Staging and production set
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
 			// it here (Browser Run can't reach an origin that isn't configured for the deployment).

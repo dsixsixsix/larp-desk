@@ -134,6 +134,10 @@ name = "dev-tldraw-multiplayer"
 # local workerd supports. Bump this once the pinned wrangler ships a workerd that supports 2026-03-24.
 compatibility_date = "2025-06-05"
 
+# TURN_URLS / TURN_AUTH are deliberately absent here: local dev has no relay configured, so voice
+# falls back to STUN only (see utils/iceServers.ts). That is enough for two machines on the same
+# network and not enough across a VPN. To exercise relaying locally, put the two vars in
+# `apps/dotcom/sync-worker/.dev.vars`, which is gitignored — never in this file, which is committed.
 [env.dev.vars]
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
@@ -215,6 +219,21 @@ pattern = "www.tldraw.com/.well-known/oauth-protected-resource/*"
 [[env.production.routes]]
 custom_domain = true
 pattern = "sync.tldraw.xyz"
+
+#################### Scheduled storage GC ####################
+# Drives the worker's scheduled() handler, which purges boards and workspaces past their trash
+# grace period and uploads their boards no longer reference (see storageGc.ts). Only staging and
+# production get a cron: `triggers` is non-inheritable, and preview deploys are many and share
+# their buckets, so a cron on each would have them all sweeping the same storage at once. Local
+# dev drives it with `wrangler dev --test-scheduled`, or the /app/admin/storage_gc route.
+#
+# Every 15 minutes rather than continuously because a pass is capped (GC_MAX_*_PER_RUN) and a
+# backlog drains over several passes; the interval is what bounds how fast it drains.
+[env.staging.triggers]
+crons = ["*/15 * * * *"]
+
+[env.production.triggers]
+crons = ["*/15 * * * *"]
 
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:

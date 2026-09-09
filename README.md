@@ -8,7 +8,8 @@
   <a href="#features">Features</a> ·
   <a href="#getting-started">Getting started</a> ·
   <a href="#architecture">Architecture</a> ·
-  <a href="#project-layout">Layout</a>
+  <a href="#project-layout">Layout</a> ·
+  <a href="./DEPLOYMENT.md">Deploying</a>
 </p>
 
 ---
@@ -28,6 +29,11 @@ browser; the name is what appears next to your cursor when someone else is on th
 Boards are grouped into workspaces and can be created, renamed and deleted. Each board keeps its
 own document, so switching between them never mixes their contents. A board can be shared with a
 link, which drops whoever opens it into the same live session.
+
+Deleting a board is reversible for a week: it leaves the workspace immediately, and a week later
+it and everything stored for it — its document, edit history, thumbnail and uploaded images — are
+deleted for good. Deleting a workspace does the same to every board in it. Images deleted from a
+board are removed from storage on the same schedule, so undo keeps working in the meantime.
 
 ### Voice chat
 
@@ -86,6 +92,8 @@ Voice chat needs a secure context, which is what browsers require before they ha
 microphone. `localhost` counts; a plain `http://` address on the local network does not, so use an
 https tunnel when testing with someone on another machine.
 
+To host it somewhere other than your own machine, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## Architecture
 
 **Local-first boards.** A board's contents live in the browser's own IndexedDB, keyed by the board
@@ -96,6 +104,14 @@ deleted or the browser's site data is cleared.
 A Durable Object in the sync worker holds one room per board id: it keeps the roster and relays
 WebRTC offers, answers and ICE candidates between browsers. Audio then flows peer to peer over a
 mesh, so it never passes through the server.
+
+**Getting connected.** Peer to peer is the goal, not a guarantee: symmetric NAT, a firewall that
+drops UDP and most VPNs all need a relay. Each session is handed TURN credentials alongside the
+roster, so those networks fall back to a relay — including over TLS on port 443, which is the one
+route that survives a restrictive network — while everyone else stays direct. Which relay is
+configuration rather than code, so it can be a hosted one or a self-hosted coturn. A connection
+that breaks mid-call (a VPN coming up or going down is the usual cause) is repaired with an ICE
+restart, which keeps the call rather than dropping it.
 
 **Voice pipeline.** The microphone goes through the browser's own echo cancellation and noise
 suppression, then through a gate built from an `AnalyserNode` and a `GainNode`: it opens above one

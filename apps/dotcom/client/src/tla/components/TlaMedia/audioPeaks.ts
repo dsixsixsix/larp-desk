@@ -14,6 +14,24 @@ const peaksCache = new Map<string, Promise<Float32Array | null>>()
 /** Enough detail to read as a waveform at the player's width, cheap enough to draw every frame. */
 export const WAVEFORM_BUCKETS = 160
 
+/**
+ * The largest file we will pull in to draw a waveform for.
+ *
+ * Assets on a shared board are fetched by everyone who opens it, so the cost of this is paid by
+ * every viewer, not by whoever uploaded the file. The server refuses uploads above its own ceiling,
+ * but an asset src is just a URL and nothing stops one pointing somewhere else.
+ */
+const MAX_PEAKS_SOURCE_BYTES = 20 * 1024 * 1024
+
+/**
+ * The rate we decode at, which decides how much memory the decoded audio takes.
+ *
+ * `decodeAudioData` resamples to its context's rate, and at 44.1kHz a few minutes of stereo is
+ * hundreds of megabytes of float32 — enough to take the tab down, for a drawing that is 160 bars
+ * wide. Nothing above a few hundred hertz survives the bucketing anyway.
+ */
+const PEAKS_SAMPLE_RATE = 8000
+
 export function getAudioPeaks(url: string): Promise<Float32Array | null> {
 	const cached = peaksCache.get(url)
 	if (cached) return cached
@@ -24,23 +42,26 @@ export function getAudioPeaks(url: string): Promise<Float32Array | null> {
 }
 
 async function decodePeaks(url: string): Promise<Float32Array | null> {
-	const AudioContextCtor =
-		window.AudioContext ??
-		(window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-	if (!AudioContextCtor) return null
+	const OfflineAudioContextCtor =
+		window.OfflineAudioContext ??
+		(window as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext
+	if (!OfflineAudioContextCtor) return null
 
 	const response = await fetch(url)
 	if (!response.ok) return null
-	const arrayBuffer = await response.arrayBuffer()
 
-	const context = new AudioContextCtor()
-	try {
-		const audioBuffer = await context.decodeAudioData(arrayBuffer)
-		return computePeaks(audioBuffer)
-	} finally {
-		// Safari caps the number of live contexts, and we only ever wanted the decoder.
-		context.close()
-	}
+	const declaredLength = Number(response.headers.get('content-length'))
+	if (Number.isFinite(declaredLength) && declaredLength > MAX_PEAKS_SOURCE_BYTES) return null
+
+	const arrayBuffer = await response.arrayBuffer()
+	// A response can arrive without a content-length, or with one that understates it.
+	if (arrayBuffer.byteLength > MAX_PEAKS_SOURCE_BYTES) return null
+
+	// Offline rather than live: this is a decoder, and its sample rate is what keeps the decoded
+	// buffer small. The length is a placeholder — decodeAudioData sizes its own output.
+	const context = new OfflineAudioContextCtor(1, 1, PEAKS_SAMPLE_RATE)
+	const audioBuffer = await context.decodeAudioData(arrayBuffer)
+	return computePeaks(audioBuffer)
 }
 
 function computePeaks(audioBuffer: AudioBuffer): Float32Array {

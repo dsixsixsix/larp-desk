@@ -8,20 +8,12 @@ import styles from './media.module.css'
  * Drawn to a canvas rather than as elements because it repaints on every timeupdate — 160 DOM
  * nodes changing colour 4x a second is the kind of thing that shows up in a profile.
  */
-export function Waveform({
-	url,
-	progress,
-	isAudio,
-}: {
-	url: string | null
-	progress: number
-	isAudio: boolean
-}) {
+export function Waveform({ url, progress }: { url: string | null; progress: number }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const [peaks, setPeaks] = useState<Float32Array | null>(null)
 
 	useEffect(() => {
-		if (!url || !isAudio) {
+		if (!url) {
 			setPeaks(null)
 			return
 		}
@@ -32,7 +24,7 @@ export function Waveform({
 		return () => {
 			cancelled = true
 		}
-	}, [url, isAudio])
+	}, [url])
 
 	useEffect(() => {
 		const canvas = canvasRef.current

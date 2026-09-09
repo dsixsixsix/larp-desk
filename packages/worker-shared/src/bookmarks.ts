@@ -3,6 +3,7 @@ import { T } from '@tldraw/validate'
 import { unfurl } from 'cloudflare-workers-unfurl'
 import { IRequest, StatusError } from 'itty-router'
 import { parseRequestQuery } from './handleRequest'
+import { parsePublicHttpUrl } from './publicUrl'
 export { unfurl } from 'cloudflare-workers-unfurl'
 
 declare const fetch: typeof import('@cloudflare/workers-types').fetch
@@ -64,6 +65,10 @@ export async function handleExtractBookmarkMetadataRequest({
 	assert(request.method === (uploadImage ? 'POST' : 'GET'))
 	const url = parseRequestQuery(request, queryValidator).url
 
+	// The caller picks this URL and we fetch it, which makes this endpoint a way to reach anything
+	// our workers can reach. `httpUrl` only checks the scheme, so the host is checked here.
+	if (!parsePublicHttpUrl(url)) throw new StatusError(400, 'Bad URL')
+
 	const metadataResult = await unfurl(url)
 
 	if (!metadataResult.ok) {
@@ -98,6 +103,13 @@ async function trySaveImage<const K extends string>(
 ): Promise<void> {
 	const initialUrl = metadata[key]
 	if (!initialUrl) return
+
+	// A second hop, and the page we just read chose where it goes: an attacker who controls any
+	// page can point its og:image wherever they like. Same gate as the page URL itself.
+	if (!parsePublicHttpUrl(initialUrl)) {
+		delete metadata[key]
+		return
+	}
 
 	try {
 		const imageResponse = await fetch(initialUrl, {

@@ -37,6 +37,12 @@ function getAuthorizedParties(env: Environment): string[] {
 }
 
 export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
+	// Without a secret key `createClerkClient` throws, which turns every request that merely asks
+	// who you are into a 500 — including `/app/feature-flags`, which anonymous clients hit on load.
+	// Nobody is signed in when Clerk isn't configured, so say that instead. Routes that require an
+	// account then answer 401 via `requireAuth`, which is what a signed-out caller should get.
+	if (!env.CLERK_SECRET_KEY) return null
+
 	const clerk = getClerkClient(env)
 	const authorizedParties = getAuthorizedParties(env)
 

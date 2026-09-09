@@ -224,9 +224,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "34e2d1989a": {
-    "translation": "Video"
-  },
   "34e34c43ec": {
     "translation": "Manage"
   },
@@ -776,6 +773,9 @@
   },
   "bc9e270b7b": {
     "translation": "Display name"
+  },
+  "bd7a9717d2": {
+    "translation": "Volume"
   },
   "bf49a2af93": {
     "translation": "Before you start"

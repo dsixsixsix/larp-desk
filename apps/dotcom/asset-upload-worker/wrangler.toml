@@ -43,6 +43,33 @@ bucket_name = 'uploads-preview'
 binding = "UPLOADS"
 bucket_name = "uploads"
 
+#################### Rate limiting ####################
+# A backstop under the shared secret on POST: a leaked secret buys a bounded number of writes rather
+# than an open bucket. `period` must be 10 or 60.
+[[env.dev.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2005"
+simple = { limit = 60, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2006"
+simple = { limit = 60, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2007"
+simple = { limit = 60, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2008"
+simple = { limit = 60, period = 60 }
+
 #################### Analytics engine ####################
 # analytics engine has the same configuration in all environments:
 [[env.dev.analytics_engine_datasets]]

@@ -45,6 +45,35 @@ bucket_name = 'uploads-preview'
 binding = "UPLOADS"
 bucket_name = "uploads"
 
+#################### Rate limiting ####################
+# The ceiling on anonymous asset uploads, keyed on the caller's address. Local boards have no owner,
+# so an upload without a fileId cannot be attributed to an account and this is the only budget it
+# answers to. Sized for a person dropping files onto a board, not for a script: `period` must be
+# 10 or 60.
+[[env.dev.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2001"
+simple = { limit = 60, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2002"
+simple = { limit = 60, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2003"
+simple = { limit = 60, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "UPLOAD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "2004"
+simple = { limit = 60, period = 60 }
+
 #################### Analytics engine ####################
 # analytics engine has the same configuration in all environments:
 [[env.dev.analytics_engine_datasets]]

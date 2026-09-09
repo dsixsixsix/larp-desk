@@ -7,7 +7,7 @@ export const mediaMessages = defineMessages({
 	mute: { defaultMessage: 'Mute' },
 	unmute: { defaultMessage: 'Unmute' },
 	seek: { defaultMessage: 'Seek' },
+	volume: { defaultMessage: 'Volume' },
 	untitledAudio: { defaultMessage: 'Audio' },
-	untitledVideo: { defaultMessage: 'Video' },
 	unavailable: { defaultMessage: "This file can't be played." },
 })

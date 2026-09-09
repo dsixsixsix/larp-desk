@@ -549,12 +549,6 @@
       "value": "Editor"
     }
   ],
-  "34e2d1989a": [
-    {
-      "type": 0,
-      "value": "Video"
-    }
-  ],
   "34e34c43ec": [
     {
       "type": 0,
@@ -1844,6 +1838,12 @@
     {
       "type": 0,
       "value": "Display name"
+    }
+  ],
+  "bd7a9717d2": [
+    {
+      "type": 0,
+      "value": "Volume"
     }
   ],
   "bf49a2af93": [

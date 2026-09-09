@@ -10,8 +10,13 @@ import { TLShapeId, TLVideoShape, useEditor, useImageOrVideoAsset, useValue } fr
 import { useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { mediaMessages } from './media-messages'
-import { formatMediaTime, getMediaLabel, isAudioAsset } from './media-shared'
-import { closeMediaPlayer, getOpenMediaShapeId } from './mediaOverlayState'
+import { formatMediaTime, getMediaLabel } from './media-shared'
+import {
+	closeMediaPlayer,
+	getOpenMediaShapeId,
+	registerMediaPlayback,
+	setOpenMediaIsPlaying,
+} from './mediaOverlayState'
 import { Waveform } from './Waveform'
 import styles from './media.module.css'
 
@@ -19,11 +24,12 @@ import styles from './media.module.css'
 const GAP = 10
 
 /**
- * The player for the currently open audio or video shape, anchored beside it on the canvas.
+ * The player for the currently open audio shape, anchored beside it on the canvas.
  *
  * It lives in the `InFrontOfTheCanvas` layer rather than inside the shape so that its controls stay
  * a fixed size at any zoom, and so that playback survives the shape's DOM being recycled as it
- * moves through the viewport. Only one is ever open (see mediaOverlayState).
+ * moves through the viewport. Only one is ever open (see mediaOverlayState). Video has no panel:
+ * it plays in place on the canvas, paused from the button on the shape itself.
  */
 export function TlaMediaOverlay() {
 	const editor = useEditor()
@@ -66,21 +72,21 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 		assetId: shape.props.assetId,
 		width: shape.props.w,
 	})
-	const isAudio = isAudioAsset(asset)
 
 	const untitledAudio = useMsg(mediaMessages.untitledAudio)
-	const untitledVideo = useMsg(mediaMessages.untitledVideo)
 	const closeLbl = useMsg(mediaMessages.close)
 	const playLbl = useMsg(mediaMessages.play)
 	const pauseLbl = useMsg(mediaMessages.pause)
 	const muteLbl = useMsg(mediaMessages.mute)
 	const unmuteLbl = useMsg(mediaMessages.unmute)
 	const seekLbl = useMsg(mediaMessages.seek)
+	const volumeLbl = useMsg(mediaMessages.volume)
 
-	const mediaRef = useRef<HTMLVideoElement & HTMLAudioElement>(null)
+	const mediaRef = useRef<HTMLAudioElement>(null)
 	const panelRef = useRef<HTMLDivElement>(null)
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [isMuted, setIsMuted] = useState(false)
+	const [volume, setVolume] = useState(1)
 	const [currentTime, setCurrentTime] = useState(0)
 	const [duration, setDuration] = useState<number | undefined>(undefined)
 
@@ -92,11 +98,15 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 		mediaRef.current?.play().catch(() => setIsPlaying(false))
 	}, [url])
 
-	// A click anywhere else on the canvas dismisses the player, the way a popover behaves.
+	// A click anywhere else on the canvas dismisses the player, the way a popover behaves. The
+	// shape's own play button is part of the player, not the canvas: closing on it would remount
+	// this panel and restart the track instead of pausing it.
 	useEffect(() => {
 		const container = editor.getContainer()
 		const handlePointerDown = (e: PointerEvent) => {
-			if (panelRef.current?.contains(e.target as Node)) return
+			const target = e.target as HTMLElement | null
+			if (panelRef.current?.contains(target)) return
+			if (target?.closest('[data-media-control]')) return
 			closeMediaPlayer()
 		}
 		container.addEventListener('pointerdown', handlePointerDown)
@@ -111,6 +121,18 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 		} else {
 			media.pause()
 		}
+	}, [])
+
+	// Lend the transport to the card on the canvas, so both buttons drive the same element.
+	useEffect(() => registerMediaPlayback(togglePlay), [togglePlay])
+	useEffect(() => setOpenMediaIsPlaying(isPlaying), [isPlaying])
+
+	const handleVolumeChange = useCallback((next: number) => {
+		const media = mediaRef.current
+		if (!media) return
+		media.volume = next
+		// Dragging the slider up is the obvious way to ask for sound back.
+		if (next > 0) media.muted = false
 	}, [])
 
 	const seekToRatio = useCallback((ratio: number) => {
@@ -152,15 +174,15 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 
 	if (!position) return null
 
-	const label = getMediaLabel(asset, isAudio ? untitledAudio : untitledVideo)
+	const label = getMediaLabel(asset, untitledAudio)
 	const progress = duration ? currentTime / duration : 0
 	const timeReadout = `${formatMediaTime(currentTime)} / ${formatMediaTime(duration)}`
+	const isSilent = isMuted || volume === 0
 
 	return (
 		<div
 			ref={panelRef}
 			className={styles.playerPanel}
-			data-kind={isAudio ? 'audio' : 'video'}
 			style={{ left: position.left, top: position.top }}
 			// The canvas treats unhandled pointer events as its own; without this, dragging the
 			// scrubber pans the board and scrolling over the panel zooms it.
@@ -182,31 +204,18 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 				</button>
 			</div>
 
-			{!isAudio && (
-				<video
-					ref={mediaRef}
-					className={styles.playerVideo}
-					src={url ?? undefined}
-					playsInline
-					onClick={togglePlay}
-					onPlay={() => setIsPlaying(true)}
-					onPause={() => setIsPlaying(false)}
-					onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-					onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-					onVolumeChange={(e) => setIsMuted(e.currentTarget.muted)}
-				/>
-			)}
-			{isAudio && (
-				<audio
-					ref={mediaRef}
-					src={url ?? undefined}
-					onPlay={() => setIsPlaying(true)}
-					onPause={() => setIsPlaying(false)}
-					onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-					onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-					onVolumeChange={(e) => setIsMuted(e.currentTarget.muted)}
-				/>
-			)}
+			<audio
+				ref={mediaRef}
+				src={url ?? undefined}
+				onPlay={() => setIsPlaying(true)}
+				onPause={() => setIsPlaying(false)}
+				onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+				onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+				onVolumeChange={(e) => {
+					setIsMuted(e.currentTarget.muted)
+					setVolume(e.currentTarget.volume)
+				}}
+			/>
 
 			<div
 				className={styles.playerScrub}
@@ -221,7 +230,7 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 				aria-valuenow={Math.floor(currentTime)}
 				aria-valuetext={formatMediaTime(currentTime)}
 			>
-				<Waveform url={url} progress={progress} isAudio={isAudio} />
+				<Waveform url={url} progress={progress} />
 			</div>
 
 			<div className={styles.playerControls}>
@@ -250,12 +259,12 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 						const media = mediaRef.current
 						if (media) media.muted = !media.muted
 					}}
-					aria-label={isMuted ? unmuteLbl : muteLbl}
-					title={isMuted ? unmuteLbl : muteLbl}
+					aria-label={isSilent ? unmuteLbl : muteLbl}
+					title={isSilent ? unmuteLbl : muteLbl}
 				>
 					<svg viewBox="0 0 24 24" aria-hidden focusable="false">
 						<path d="M4 9.5h3.2L11 6v12l-3.8-3.5H4z" fill="currentColor" />
-						{isMuted ? (
+						{isSilent ? (
 							<path
 								d="m14.5 9.5 5 5m0-5-5 5"
 								stroke="currentColor"
@@ -274,6 +283,20 @@ function MediaPlayer({ shape }: { shape: TLVideoShape }) {
 						)}
 					</svg>
 				</button>
+
+				<input
+					type="range"
+					className={styles.playerVolume}
+					min={0}
+					max={1}
+					step={0.01}
+					value={isMuted ? 0 : volume}
+					onChange={(e) => handleVolumeChange(e.currentTarget.valueAsNumber)}
+					// Arrow keys would otherwise also nudge the selected shape behind the panel.
+					onKeyDown={(e) => e.stopPropagation()}
+					aria-label={volumeLbl}
+					title={volumeLbl}
+				/>
 			</div>
 		</div>
 	)

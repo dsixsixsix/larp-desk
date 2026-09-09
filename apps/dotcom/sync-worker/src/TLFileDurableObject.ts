@@ -51,9 +51,9 @@ import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } fr
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
-import { Kysely, PostgresDialect } from 'kysely'
+import { Kysely, PostgresDialect, sql } from 'kysely'
 import PQueue from 'p-queue'
-import { collectAssetAssociationChanges } from './assetAssociation'
+import { collectAssetAssociationChanges, getUploadObjectName } from './assetAssociation'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
@@ -99,6 +99,7 @@ import {
 	resolvePersistedFingerprint,
 	SnapshotFingerprint,
 } from './snapshotUtils'
+import { diffReferencedAssets } from './storageGc'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -1564,6 +1565,12 @@ export class TLFileDurableObject extends DurableObject {
 	// persist tick. In-memory only: resets with the DO, never touches document data.
 	private readonly missingSourceObjects = new Set<string>()
 
+	// The set of uploads the document referenced when unreferenced-asset marking last ran, so a
+	// persist that didn't move any assets — the overwhelming majority — costs no queries. Cleared
+	// with the DO, which only makes the next persist do the work again.
+	private lastReferencedAssetsKey: string | null = null
+	private markingUnreferencedAssets = false
+
 	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
 	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
 	// connection limit (see MAX_CONCURRENT_R2_OPERATIONS).
@@ -1641,6 +1648,73 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this.documentInfo.isApp) return
 		if (!this.associateAssetsQueue.isEmpty()) return
 		await this.associateAssetsQueue.push(() => this.associateFileAssets())
+	}
+
+	/**
+	 * Dates the moment this board stopped referencing an upload, so the storage GC can delete the
+	 * object once the grace period is up (see storageGc.ts). Nothing is deleted here: removing an
+	 * image from a board is an ordinary edit, and the object has to outlive an undo.
+	 *
+	 * Un-awaited from the persist tick, and single-flighted rather than queued — a dropped call is
+	 * covered by the next persist, and marking is only useful once the edits settle anyway.
+	 */
+	private maybeMarkUnreferencedAssets() {
+		if (!this.documentInfo.isApp) return
+		if (this.markingUnreferencedAssets) return
+		this.markingUnreferencedAssets = true
+		this.markUnreferencedAssets()
+			.catch((e) => this.reportError(e))
+			.finally(() => {
+				this.markingUnreferencedAssets = false
+			})
+	}
+
+	private async markUnreferencedAssets() {
+		const slug = this.documentInfo.slug
+		const storage = await this.getStorage()
+		const { result: referencedObjectNames } = storage.transaction((txn) => {
+			const names = new Set<string>()
+			for (const record of txn.values()) {
+				if ((record as any).typeName !== 'asset') continue
+				const objectName = getUploadObjectName(record as any)
+				if (objectName) names.add(objectName)
+			}
+			return names
+		})
+
+		const key = [...referencedObjectNames].sort().join('\n')
+		if (key === this.lastReferencedAssetsKey) return
+
+		const rows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', slug)
+			.select('objectName')
+			.execute()
+		const { referenced, unreferenced } = diffReferencedAssets(rows, referencedObjectNames)
+
+		// Un-marking first: an asset that came back (an undo, or a paste of something just
+		// deleted) must never be left marked, even if the insert below fails.
+		if (referenced.length > 0) {
+			await this.db.deleteFrom('asset_unreferenced').where('objectName', 'in', referenced).execute()
+		}
+		if (unreferenced.length > 0) {
+			await this.db
+				.insertInto('asset_unreferenced')
+				.values(
+					unreferenced.map((objectName) => ({
+						objectName,
+						fileId: slug,
+						// The GC compares this against the database's clock, so it has to be set by it.
+						since: sql<Date>`now()`,
+					}))
+				)
+				// Keep the original date: re-marking on every persist would push the deletion out
+				// forever on a board that keeps being edited.
+				.onConflict((oc) => oc.column('objectName').doNothing())
+				.execute()
+		}
+
+		this.lastReferencedAssetsKey = key
 	}
 
 	private async associateFileAssets() {
@@ -1796,6 +1870,7 @@ export class TLFileDurableObject extends DurableObject {
 						const snapshot = storage.getSnapshot()
 						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
+						this.maybeMarkUnreferencedAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						const snapshotFingerprint = getSnapshotFingerprint(snapshot)

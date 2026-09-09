@@ -1,4 +1,5 @@
 import { R2Bucket, WorkerVersionMetadata } from '@cloudflare/workers-types'
+import { RateLimiterBinding } from '@tldraw/worker-shared'
 
 interface SyncWorkerRpc {
 	validateUpload(
@@ -13,6 +14,7 @@ export interface Environment {
 	UPLOADS: R2Bucket
 	CF_VERSION_METADATA: WorkerVersionMetadata
 	SYNC_WORKER: SyncWorkerRpc
+	UPLOAD_RATE_LIMITER: RateLimiterBinding
 
 	// environment variables
 	SENTRY_DSN: string | undefined

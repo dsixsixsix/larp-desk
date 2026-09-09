@@ -3,6 +3,7 @@
 
 import {
 	blockUnknownOrigins,
+	checkUploadRateLimit,
 	createRouter,
 	handleApiRequest,
 	handleUserAssetGet,
@@ -39,6 +40,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// 3. confirmUpload — queues a message to asynchronously insert an `asset` row
 		//    linking the uploaded blob to the document.
 		.post('/:objectName', async (request) => {
+			// Uploads without a fileId are anonymous by design — a local board has no owner to
+			// authenticate against — so this is the only thing standing between one caller and an
+			// unbounded number of writes into the bucket. It runs ahead of the R2 work so a caller
+			// over budget costs us the check and nothing else.
+			const limited = await checkUploadRateLimit(this.env.UPLOAD_RATE_LIMITER, request, 'upload')
+			if (limited) return limited
+
 			const objectName = request.params.objectName
 			const fileId = new URL(request.url).searchParams.get('fileId')
 

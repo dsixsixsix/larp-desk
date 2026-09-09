@@ -55,8 +55,10 @@ import { mcpServer } from './routes/tla/mcpServer'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
+import { runScheduledStorageGc } from './storageGcRunner'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
+import { writeDataPoint } from './utils/analytics'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
@@ -116,7 +118,10 @@ const router = createRouter<Environment>()
 	// capability (see UnoBoardPresenceDurableObject).
 	.get('/uno/board/:boardId/presence', (req, env) => {
 		const boardId = req.params.boardId
-		if (!boardId) return notFound()
+		// `idFromName` names an object into existence, so an unchecked id lets a caller conjure as
+		// many of them as they can send requests. Board ids are `uniqueId()`, optionally behind the
+		// `tldraw_document_v3_` prefix, so nothing legitimate needs more than this alphabet.
+		if (!boardId || !/^[A-Za-z0-9_-]{1,128}$/.test(boardId)) return notFound()
 		const stub = env.UNO_BOARD_PRESENCE.get(env.UNO_BOARD_PRESENCE.idFromName(boardId))
 		return stub.fetch(req as unknown as Request)
 	})
@@ -342,6 +347,41 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	// Queues the DB association after a successful R2 upload.
 	async confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void> {
 		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
+	}
+
+	// Reclaims storage that a delete alone doesn't: purges boards and workspaces whose trash grace
+	// period has elapsed, and uploads their boards have stopped referencing. See storageGc.ts.
+	override async scheduled(_controller: ScheduledController): Promise<void> {
+		try {
+			const result = await runScheduledStorageGc(this.env, {
+				onError: (error, context) => this.reportStorageGcFailure(error, context),
+			})
+			writeDataPoint(undefined, this.env.MEASURE, this.env, 'storage_gc', {
+				doubles: [result.files, result.groups, result.assets, result.failures],
+			})
+		} catch (e) {
+			// A pass-level crash (an unreachable database, say); per-item failures are reported by
+			// onError above and never reach here. The next tick retries the whole pass.
+			this.reportStorageGcFailure(e, { stage: 'pass' })
+		}
+	}
+
+	private reportStorageGcFailure(error: unknown, context: Record<string, unknown>) {
+		try {
+			const sentry = createSentry(this.ctx, this.env)
+			if (!sentry) {
+				console.error('[storage-gc] failed', context, error)
+				return
+			}
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			sentry.withScope((scope) => {
+				scope.setExtras(context)
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(error)
+			})
+		} catch (_e) {
+			console.error('[storage-gc] failed', context, error)
+		}
 	}
 
 	// Both branches of the queue loop swallow their errors so one bad message cannot abort the

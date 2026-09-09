@@ -446,6 +446,28 @@ export interface TlaEffectOutbox {
 }
 
 /**
+ * Trash ledger row: when a file or group was soft-deleted, so the scheduled storage GC can
+ * apply a grace period before purging it (see migration 050). Written by triggers, cleared on
+ * restore. Worker-side only — not a Zero table.
+ */
+export interface TlaDeletedEntity {
+	tableName: 'file' | 'group'
+	entityId: string
+	deletedAt: Date
+}
+
+/**
+ * An upload the board that owns it has stopped referencing (see migration 050). The gap
+ * between this timestamp and the GC deleting the object is what keeps undo working after an
+ * image is deleted from a board. Worker-side only — not a Zero table.
+ */
+export interface TlaAssetUnreferenced {
+	objectName: string
+	fileId: string
+	since: Date
+}
+
+/**
  * The welcome-template pointer (see migration 035). Worker-side config only — not a Zero
  * table (absent from `createSchema` below), so it never replicates to clients.
  */
@@ -494,6 +516,8 @@ export interface DB {
 	comment_mention: TlaCommentMention
 	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 	effect_outbox: TlaEffectOutbox
+	deleted_entity: TlaDeletedEntity
+	asset_unreferenced: TlaAssetUnreferenced
 }
 
 export const schema = createSchema({

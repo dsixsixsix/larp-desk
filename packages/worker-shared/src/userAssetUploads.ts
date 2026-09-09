@@ -26,6 +26,86 @@ function invalidObjectNameResponse() {
 	return Response.json({ error: 'Invalid object name' }, { status: 400 })
 }
 
+/**
+ * The server-side ceiling on a single asset upload.
+ *
+ * The product limit is the editor's `DEFAULT_MAX_ASSET_SIZE` (10MB), enforced in the browser before
+ * a file is ever sent. That check is a courtesy to the user, not a boundary: nothing stops a caller
+ * from POSTing straight at this worker. This is the boundary, set above the product limit so a
+ * legitimate upload never meets it.
+ */
+export const MAX_ASSET_UPLOAD_BYTES = 25 * 1024 * 1024
+
+/** Thrown by the limiting stream so a body that outruns the cap is answered 413, not 500. */
+const ASSET_TOO_LARGE_MESSAGE = 'Asset exceeds the maximum upload size'
+
+class AssetTooLargeError extends Error {
+	constructor() {
+		super(ASSET_TOO_LARGE_MESSAGE)
+	}
+}
+
+function payloadTooLargeResponse() {
+	return Response.json(
+		{ error: 'Asset is too large', maxBytes: MAX_ASSET_UPLOAD_BYTES },
+		{ status: 413 }
+	)
+}
+
+function parseContentLength(headers: Headers): number | null {
+	const raw = headers.get('content-length')
+	if (raw === null) return null
+	// A malformed or negative value tells us nothing, so treat it as absent and let the byte
+	// counter below be the thing that decides.
+	if (!/^\d+$/.test(raw.trim())) return null
+	const value = Number(raw)
+	return Number.isSafeInteger(value) ? value : null
+}
+
+/**
+ * Caps the body at `maxBytes` as it streams past, without holding it.
+ *
+ * `content-length` is a claim, not a fact — it can be absent on a chunked body and it can simply
+ * lie — so the count here is what actually enforces the limit. Streaming rather than buffering is
+ * the point: an isolate has 128MB for every request it is serving at once, so buffering even a
+ * bounded body lets a handful of concurrent uploads exhaust it and take unrelated requests down
+ * with them.
+ */
+function limitBodySize(body: ReadableStream, maxBytes: number): ReadableStream {
+	let seen = 0
+	return body.pipeThrough(
+		new TransformStream({
+			transform(chunk, controller) {
+				seen += (chunk as Uint8Array).byteLength
+				if (seen > maxBytes) {
+					controller.error(new AssetTooLargeError())
+					return
+				}
+				controller.enqueue(chunk)
+			},
+		})
+	)
+}
+
+/**
+ * The subset of the uploader's headers we let reach R2, which is served back to every viewer of the
+ * asset by {@link handleUserAssetGet}.
+ *
+ * Forwarding the request headers wholesale handed an uploader the response headers too: a
+ * `content-disposition` of their choosing turns an asset URL into a drive-by download from our own
+ * domain. Only a well-formed content type survives, and anything else becomes the type that commits
+ * a browser to nothing.
+ */
+function safeHttpMetadata(headers: Headers): { contentType: string } {
+	const contentType = headers.get('content-type')?.trim()
+	// type/subtype with optional parameters, per RFC 9110 — deliberately strict, since the value
+	// ends up in a response header.
+	if (contentType && /^[\w.+-]+\/[\w.+-]+(\s*;[\w.+-]+\s*=\s*[^;]+)*$/.test(contentType)) {
+		return { contentType }
+	}
+	return { contentType: 'application/octet-stream' }
+}
+
 export const TRANSIENT_RETRY_OPTIONS = {
 	attempts: 3,
 	waitDuration: 500,
@@ -52,14 +132,19 @@ declare const caches: {
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
  * Checks if the asset already exists and returns a 409 Conflict status if found,
- * otherwise uploads the asset with the provided HTTP metadata.
+ * otherwise streams the asset into the bucket.
+ *
+ * Bodies over {@link MAX_ASSET_UPLOAD_BYTES} are refused with a 413, whether or not their
+ * `content-length` admits their size, and only a validated content type is carried through to the
+ * stored object.
  *
  * @param options - Configuration object for the upload
  *   - objectName - Unique identifier for the asset in R2 storage
  *   - bucket - Cloudflare R2 bucket instance for storage
  *   - body - ReadableStream containing the asset data to upload
  *   - headers - HTTP headers to store as metadata with the asset
- * @returns Promise resolving to JSON response with object name and ETag, or 409 if exists
+ * @returns Promise resolving to JSON response with object name and ETag, 409 if it exists, or 413
+ *   if it is too large
  *
  * @example
  * ```ts
@@ -90,22 +175,36 @@ export async function handleUserAssetUpload({
 }): Promise<Response> {
 	if (!isValidR2ObjectName(objectName)) return invalidObjectNameResponse()
 
+	// Answered before the body is touched, so an oversized upload costs us a header read rather
+	// than the transfer. A body that omits or understates its length is caught by limitBodySize.
+	const declaredLength = parseContentLength(headers)
+	if (declaredLength !== null && declaredLength > MAX_ASSET_UPLOAD_BYTES) {
+		return payloadTooLargeResponse()
+	}
+
 	try {
 		const existing = await retry(() => bucket.head(objectName), TRANSIENT_RETRY_OPTIONS)
 		if (existing) {
 			return Response.json({ error: 'Asset already exists' }, { status: 409 })
 		}
 
-		// Buffer body so retries can re-send (ReadableStream is single-use)
-		const buffer = body ? await new Response(body).arrayBuffer() : null
-
-		const object = await retry(
-			() => bucket.put(objectName, buffer, { httpMetadata: headers }),
-			TRANSIENT_RETRY_OPTIONS
+		// Streamed rather than buffered, which costs us the retry this call used to have: a
+		// ReadableStream is single-use, so a transient R2 error now reaches the client instead of
+		// being absorbed here. That is the cheaper failure. Buffering held the whole body in an
+		// isolate that has 128MB for every request it is serving concurrently, so a few large
+		// uploads — or one larger than the isolate — killed unrelated requests alongside their own.
+		const object = await bucket.put(
+			objectName,
+			body ? limitBodySize(body, MAX_ASSET_UPLOAD_BYTES) : null,
+			{ httpMetadata: safeHttpMetadata(headers) }
 		)
 
 		return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 	} catch (error) {
+		// R2 may surface the errored stream as a failure of its own rather than propagating ours,
+		// which is why the message is checked alongside the type.
+		if (error instanceof AssetTooLargeError) return payloadTooLargeResponse()
+		if (String(error).includes(ASSET_TOO_LARGE_MESSAGE)) return payloadTooLargeResponse()
 		if (isInvalidObjectNameError(error)) return invalidObjectNameResponse()
 		throw error
 	}

@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import { Environment } from './types'
+import { getIceServers } from './utils/iceServers'
 
 /**
  * How long a participant can go without sending anything before it is dropped. Browsers do not
@@ -12,6 +13,33 @@ const SWEEP_INTERVAL_MS = 15_000
 /** Sent when the roster is full — the mesh is O(n²) connections, so it can't be a big number. */
 export const MAX_PARTICIPANTS = 16
 
+/**
+ * The largest frame a participant may send. Comfortably above a full SDP offer, which is the
+ * biggest thing signalling legitimately carries, and far below what it costs to hold sixteen of
+ * them. `signal` payloads are relayed verbatim, so without this one participant can make the object
+ * hold and forward whatever size they like.
+ */
+const MAX_MESSAGE_BYTES = 32 * 1024
+
+/**
+ * Per-participant message budget, as a token bucket: `RATE_BURST` frames may arrive at once and the
+ * allowance refills at `RATE_REFILL_PER_SECOND`.
+ *
+ * Signalling is bursty — a join floods ICE candidates — so a flat per-second cap would break the
+ * thing it is protecting. The sustained rate is what matters here: every `hello` and `update` costs
+ * a roster broadcast to everyone, so an unmetered sender is amplified by the size of the room.
+ */
+const RATE_BURST = 80
+const RATE_REFILL_PER_SECOND = 20
+
+/**
+ * How long a roster change waits for the changes arriving alongside it.
+ *
+ * Sixteen people unmuting at once used to be sixteen broadcasts of sixteen messages. Short enough
+ * that nobody perceives the delay on someone else's mic indicator.
+ */
+const ROSTER_BROADCAST_DEBOUNCE_MS = 50
+
 interface Participant {
 	socket: WebSocket
 	id: string
@@ -21,6 +49,9 @@ interface Participant {
 	isSpeaking: boolean
 	isMicOn: boolean
 	lastSeen: number
+	/** Token bucket state; see RATE_BURST. */
+	tokens: number
+	tokensRefilledAt: number
 }
 
 interface PublicParticipant {
@@ -40,17 +71,18 @@ interface PublicParticipant {
  * is derived from the sockets currently attached, so an eviction between sessions costs nothing.
  *
  * Message envelopes are `{ type, ... }` JSON both ways. Client → server:
- * - `hello`   `{ name, color }` — identifies the connection; answered with `welcome`.
+ * - `hello`   `{ name }` — identifies the connection; answered with `welcome`.
  * - `update`  `{ name?, isSpeaking?, isMicOn? }` — partial state change, broadcast as `roster`.
  * - `signal`  `{ to, payload }` — relayed verbatim to that one peer as `signal` `{ from, payload }`.
  * - `ping`    — keeps `lastSeen` fresh.
  *
  * Server → client: `welcome` `{ selfId, participants }`, `roster` `{ participants }`,
- * `signal` `{ from, payload }`, `full`, `error` `{ message }`.
+ * `ice-servers` `{ iceServers }`, `signal` `{ from, payload }`, `full`, `error` `{ message }`.
  */
 export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 	private participants = new Map<string, Participant>()
 	private sweepTimer: ReturnType<typeof setInterval> | null = null
+	private rosterTimer: ReturnType<typeof setTimeout> | null = null
 
 	override async fetch(request: Request): Promise<Response> {
 		if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
@@ -77,6 +109,8 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 			isSpeaking: false,
 			isMicOn: false,
 			lastSeen: Date.now(),
+			tokens: RATE_BURST,
+			tokensRefilledAt: Date.now(),
 		}
 		this.participants.set(id, participant)
 		this.ensureSweeper()
@@ -88,7 +122,11 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 		server.send(
 			JSON.stringify({ type: 'welcome', selfId: id, participants: this.publicParticipants() })
 		)
-		this.broadcastRoster()
+		this.scheduleRosterBroadcast()
+		// Sent separately rather than folded into `welcome`, so the roster never waits on credential
+		// minting. The client only needs these once someone turns a microphone on, which is always
+		// later than this.
+		void this.sendIceServers(participant)
 
 		return new Response(null, { status: 101, webSocket: client })
 	}
@@ -96,9 +134,26 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 	private handleMessage(participant: Participant, event: MessageEvent) {
 		participant.lastSeen = Date.now()
 
+		const raw = typeof event.data === 'string' ? event.data : null
+		// Binary frames are not part of the protocol, and an oversized one is not worth parsing.
+		if (raw === null || raw.length > MAX_MESSAGE_BYTES) return
+
+		if (!this.spendToken(participant)) {
+			// Closing rather than dropping: a client this far over budget is either broken or not a
+			// client, and either way the roster is better off without it. Its peers see it leave and
+			// tear down their connections instead of waiting on one that is not coming.
+			try {
+				participant.socket.close(1008, 'Too many messages')
+			} catch {
+				// Removing it from the roster is the part that matters.
+			}
+			this.removeParticipant(participant.id)
+			return
+		}
+
 		let message: any
 		try {
-			message = JSON.parse(typeof event.data === 'string' ? event.data : '')
+			message = JSON.parse(raw)
 		} catch {
 			return
 		}
@@ -108,21 +163,24 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 			case 'ping':
 				return
 			case 'hello': {
+				// `color` is assigned here and never accepted from the client: it is rendered into
+				// every other participant's roster entry, and there is no colour a client could ask
+				// for that we would rather have than the stable one their id already picks out.
 				if (typeof message.name === 'string') participant.name = trimName(message.name)
-				if (typeof message.color === 'string') participant.color = message.color
-				this.broadcastRoster()
+				this.scheduleRosterBroadcast()
 				return
 			}
 			case 'update': {
 				if (typeof message.name === 'string') participant.name = trimName(message.name)
 				if (typeof message.isSpeaking === 'boolean') participant.isSpeaking = message.isSpeaking
 				if (typeof message.isMicOn === 'boolean') participant.isMicOn = message.isMicOn
-				this.broadcastRoster()
+				this.scheduleRosterBroadcast()
 				return
 			}
 			case 'signal': {
 				// Relayed rather than interpreted: the offer/answer/ICE payloads are between the two
 				// browsers, and this object has no reason to understand them.
+				if (typeof message.to !== 'string' || message.to === participant.id) return
 				const target = this.participants.get(message.to)
 				if (!target) return
 				send(target.socket, { type: 'signal', from: participant.id, payload: message.payload })
@@ -131,13 +189,48 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	/** Takes one token from the participant's budget, refilling it for the time that has passed. */
+	private spendToken(participant: Participant): boolean {
+		const now = Date.now()
+		const elapsedSeconds = (now - participant.tokensRefilledAt) / 1000
+		participant.tokens = Math.min(
+			RATE_BURST,
+			participant.tokens + elapsedSeconds * RATE_REFILL_PER_SECOND
+		)
+		participant.tokensRefilledAt = now
+		if (participant.tokens < 1) return false
+		participant.tokens -= 1
+		return true
+	}
+
+	private async sendIceServers(participant: Participant) {
+		const iceServers = await getIceServers(this.env)
+		// The participant may well have gone in the meantime; `send` tolerates a dead socket, but
+		// there is no point resolving a roster entry that is no longer there.
+		if (this.participants.get(participant.id) !== participant) return
+		send(participant.socket, { type: 'ice-servers', iceServers })
+	}
+
 	private removeParticipant(id: string) {
 		if (!this.participants.delete(id)) return
-		this.broadcastRoster()
+		this.scheduleRosterBroadcast()
 		if (this.participants.size === 0 && this.sweepTimer) {
 			clearInterval(this.sweepTimer)
 			this.sweepTimer = null
 		}
+	}
+
+	/**
+	 * Coalesces roster changes so a burst of them costs one broadcast instead of one each. Every
+	 * broadcast is a message to every participant, so the un-coalesced cost of a change is the size
+	 * of the room, and the cost of a burst is that multiplied again.
+	 */
+	private scheduleRosterBroadcast() {
+		if (this.rosterTimer) return
+		this.rosterTimer = setTimeout(() => {
+			this.rosterTimer = null
+			this.broadcastRoster()
+		}, ROSTER_BROADCAST_DEBOUNCE_MS)
 	}
 
 	/** Drops participants whose sockets died without a close frame. */

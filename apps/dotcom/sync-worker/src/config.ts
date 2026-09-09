@@ -169,3 +169,28 @@ export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
  * The URL of the PostHog instance to use.
  */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
+
+/**
+ * Storage GC dials (storageGc.ts, run from the worker's scheduled handler).
+ *
+ * Deleting a board sets `isDeleted` and nothing more, so before this existed every R2 object
+ * behind a deleted board — snapshot, edit history, published snapshots, thumbnail, uploads —
+ * outlived it forever, as did the rows and the durable object's SQLite. The retentions below
+ * are the window in which a delete is still reversible; past them, it is not, in R2 or anywhere
+ * else.
+ *
+ * Trash retention covers boards and workspaces. Asset retention covers uploads a board has
+ * stopped referencing, and exists for undo: deleting an image from a board is an ordinary edit
+ * that a user can take back, and the object has to survive long enough for that.
+ *
+ * The per-pass caps are what keep a pass inside a worker invocation's CPU and subrequest
+ * budget — a file purge costs several R2 listings and deletes. A backlog larger than a pass
+ * stays in the ledger and drains over the following passes, so raising these buys throughput
+ * on a backlog and nothing else. Assets are far cheaper (one R2 delete each), hence the much
+ * larger cap.
+ */
+export const GC_TRASH_RETENTION_DAYS = 7
+export const GC_ASSET_RETENTION_DAYS = 7
+export const GC_MAX_FILES_PER_RUN = 25
+export const GC_MAX_GROUPS_PER_RUN = 25
+export const GC_MAX_ASSETS_PER_RUN = 500

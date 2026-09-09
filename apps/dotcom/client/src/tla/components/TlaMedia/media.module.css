@@ -24,12 +24,11 @@
 
 /* ------------------------ Cards on the canvas ----------------------- */
 
+/* Sized and scaled inline per-shape — see UnoMediaShapeUtil. */
 .audioCard {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	width: 100%;
-	height: 100%;
 	padding: 0 16px;
 	box-sizing: border-box;
 	border-radius: var(--uno-radius-panel);
@@ -101,22 +100,32 @@
 	height: 55%;
 }
 
-/* The play button sits over the SDK's muted video preview, in a corner rather than the middle:
-   the button swallows the pointer events under it, and the middle of a video is where people
-   grab it to drag. */
+/* The play button sits in the middle of the SDK's muted video preview, and only while the shape is
+   hovered or selected — an always-on button would cover the picture, and the middle of a video is
+   also where people grab it to drag. */
 .videoCardOverlay {
 	position: absolute;
 	inset: 0;
 	display: flex;
-	align-items: flex-end;
-	justify-content: flex-start;
-	padding: 8px;
+	align-items: center;
+	justify-content: center;
 	box-sizing: border-box;
 	/* The layer itself is transparent to the pointer; the button takes its own events back. */
 	pointer-events: none;
+	opacity: 0;
+	transition: opacity var(--uno-duration) ease;
 }
 
-.videoCardOverlay .playButton {
+.videoCardOverlay[data-revealed='true'] {
+	opacity: 1;
+}
+
+/* Hidden means untouchable, or the middle of every video would still swallow a drag. */
+.videoCardOverlay:not([data-revealed='true']) .playButtonLarge {
+	pointer-events: none;
+}
+
+.videoCardOverlay .playButtonLarge {
 	box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
 }
 
@@ -188,10 +197,6 @@
 	--waveform-rest: var(--tl-color-muted-2);
 }
 
-.playerPanel[data-kind='video'] {
-	width: 460px;
-}
-
 .playerHeader {
 	display: flex;
 	align-items: center;
@@ -207,24 +212,51 @@
 	text-overflow: ellipsis;
 }
 
-.playerVideo {
-	width: 100%;
-	max-height: 260px;
-	border-radius: var(--uno-radius-control);
-	background-color: #000;
-	cursor: pointer;
-	display: block;
-}
-
 .playerControls {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-/* Pushes the mute button to the far end, away from play/time. */
+/* Pushes the volume controls to the far end, away from play/time. */
 .playerControls .playerTime {
 	margin-right: auto;
+}
+
+.playerVolume {
+	flex: 0 0 auto;
+	width: 72px;
+	height: 4px;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+	appearance: none;
+	border-radius: 2px;
+	background-color: var(--tl-color-muted-2);
+	accent-color: var(--uno-color-brand);
+}
+
+/* Chromium and Safari won't style the thumb through `accent-color` once the track is custom. */
+.playerVolume::-webkit-slider-thumb {
+	appearance: none;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	border: none;
+	background-color: var(--uno-color-brand);
+}
+
+.playerVolume::-moz-range-thumb {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	border: none;
+	background-color: var(--uno-color-brand);
+}
+
+.playerVolume:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 3px;
 }
 
 .playerPlayButton {

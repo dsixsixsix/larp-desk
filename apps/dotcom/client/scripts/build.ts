@@ -1,4 +1,5 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
+import { join } from 'path'
 import {
 	FILE_PREFIX,
 	PUBLISH_PREFIX,
@@ -121,13 +122,19 @@ async function build() {
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
-	// We serve the .js.map files publicly. The client source is open at tldraw/tldraw, so
-	// there's nothing to hide, and serving the maps lets anyone debugging a deployed build get
-	// real names and lines in devtools without going through Sentry. Sentry still gets its own
-	// copy via the upload step, which reads from dist/assets before this point.
+
+	// The maps are built and uploaded, but not deployed. This app was a tldraw fork, whose maps were
+	// safe to serve because that source is public; this one's is not, and a served map is the whole
+	// of it — every module, with real names and comments — handed to anyone who opens devtools.
+	// Sentry already has its copy from the upload step above, which reads dist/assets, so stack
+	// traces stay readable where we actually read them.
+	const sourceMaps = readdirSync('.vercel/output/static/assets').filter((f) => f.endsWith('.map'))
+	for (const map of sourceMaps) {
+		rmSync(join('.vercel/output/static/assets', map))
+	}
 
 	// Add fonts to preload into index.html
-	const assetsList = readdirSync('dist/assets')
+	const assetsList = readdirSync('.vercel/output/static/assets')
 	const fontsToPreload = [
 		'Shantell_Sans-Informal_Regular',
 		'IBMPlexSerif-Medium',
@@ -163,8 +170,8 @@ async function build() {
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
-	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're
-	// safe to cache immutably, and we now serve them rather than stripping them from the deploy.
+	// Content-hashed, so they're safe to cache immutably. Reads the deployed directory rather than
+	// `dist`, so the maps removed above don't get cache routes written for files that aren't there.
 	const assetsToCache = assetsList.map((f) => `/assets/${f}`)
 	// need to batch these because Vercel's route limit is 4096 characters
 	const assetsBatches: string[][] = []

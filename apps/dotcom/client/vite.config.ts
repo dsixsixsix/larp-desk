@@ -78,6 +78,11 @@ export default defineConfig((env) => ({
 	resolve: {
 		alias: {
 			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser.js',
+			// `@clerk/elements` imports these unconditionally to support Next apps. See the stub.
+			'next/navigation': fileURLToPath(new URL('./scripts/next-router-stub.ts', import.meta.url)),
+			'next/compat/router': fileURLToPath(
+				new URL('./scripts/next-router-stub.ts', import.meta.url)
+			),
 			// Local-only escape hatch: run the app without Clerk credentials. You get the signed-out
 			// experience (the local scratch canvas); nothing that needs an account works. See the shim.
 			...(process.env.VITE_DISABLE_AUTH === '1' && {

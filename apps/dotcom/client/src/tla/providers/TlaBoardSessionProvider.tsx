@@ -19,7 +19,49 @@ const RECONNECT_MAX_MS = 15_000
 /** Well under the server's 45s participant timeout (see UnoBoardPresenceDurableObject). */
 const PING_INTERVAL_MS = 15_000
 
-const ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }]
+/**
+ * Used until the server's `ice-servers` message arrives, and if it never does.
+ *
+ * STUN only, so it connects the ordinary home-router case and nothing else: two peers behind
+ * symmetric NAT, a firewall that drops UDP, or most VPNs need a relay, and the relay is whatever
+ * the worker is configured with (see utils/iceServers.ts there).
+ */
+const FALLBACK_ICE_SERVERS: RTCIceServer[] = [
+	{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.cloudflare.com:53'] },
+]
+
+/**
+ * How long a peer is allowed to sit in `disconnected` before its ICE is restarted.
+ *
+ * A short drop — a wifi roam, a few lost packets — heals on its own within a second or two, and
+ * restarting through that costs more than it saves. Anything longer is a route that is genuinely
+ * gone (a VPN coming up or going down mid-call is the common one) and only a restart recovers it.
+ */
+const ICE_RECOVERY_DELAY_MS = 2_000
+/**
+ * Restarts before a peer is given up on and rebuilt from scratch. Bounded because a restart loop
+ * against a network that simply cannot carry the connection is just noise.
+ */
+const MAX_ICE_RESTARTS = 3
+
+interface AudioEncodingParameters extends RTCRtpEncodingParameters {
+	/** Opus discontinuous transmission. Shipped in Chrome; not in lib.dom's type yet. */
+	dtx?: 'enabled' | 'disabled'
+}
+
+/**
+ * Opus encoding for a conversation rather than for music.
+ *
+ * `dtx` stops the encoder spending bandwidth on the silence the gate produces between words, which
+ * matters most on exactly the constrained links this is here for: less to send is less to queue,
+ * and queueing is what turns into audible delay. `networkPriority` asks the OS to mark the packets
+ * so they are the last thing dropped when a link is congested.
+ */
+const AUDIO_ENCODING: AudioEncodingParameters = {
+	dtx: 'enabled',
+	networkPriority: 'high',
+	priority: 'high',
+}
 
 const OUTPUT_DEVICE_KEY = 'tldraw-dotcom:audio-output-device'
 const INPUT_DEVICE_KEY = 'tldraw-dotcom:audio-input-device'
@@ -87,6 +129,9 @@ interface PeerConnection {
 	makingOffer: boolean
 	ignoreOffer: boolean
 	isPolite: boolean
+	/** ICE restarts attempted since this peer was last connected. */
+	restarts: number
+	recoveryTimer: ReturnType<typeof setTimeout> | null
 }
 
 /**
@@ -124,6 +169,10 @@ export function TlaBoardSessionProvider({
 	const selfIdRef = useRef<string | null>(null)
 	const peersRef = useRef(new Map<string, PeerConnection>())
 	const pipelineRef = useRef<MicPipeline | null>(null)
+	const iceServersRef = useRef<RTCIceServer[]>(FALLBACK_ICE_SERVERS)
+	// Bumped when a peer is given up on, so the mesh effect below rebuilds it. Without it a peer
+	// that failed while the roster was unchanged would stay torn down until somebody joined or left.
+	const [rebuildTick, setRebuildTick] = useState(0)
 
 	const send = useCallback((message: unknown) => {
 		const socket = socketRef.current
@@ -137,6 +186,8 @@ export function TlaBoardSessionProvider({
 		const peer = peersRef.current.get(peerId)
 		if (!peer) return
 		peersRef.current.delete(peerId)
+		if (peer.recoveryTimer) clearTimeout(peer.recoveryTimer)
+		peer.pc.onconnectionstatechange = null
 		peer.pc.onicecandidate = null
 		peer.pc.ontrack = null
 		peer.pc.onnegotiationneeded = null
@@ -144,6 +195,47 @@ export function TlaBoardSessionProvider({
 		peer.audio.srcObject = null
 		peer.audio.remove()
 	}, [])
+
+	/**
+	 * Puts a peer whose transport has gone back together, by restarting ICE: the connection keeps
+	 * its media and its negotiated codecs and only re-gathers candidates, which is what recovers a
+	 * call across a network change (a VPN going up or down mid-call being the usual one).
+	 *
+	 * The restart re-reads the ICE servers first, so a peer built before the relay credentials
+	 * arrived gets them on the way back up rather than retrying against STUN it already couldn't use.
+	 * Past the restart budget the peer is dropped and the mesh effect builds a fresh one.
+	 */
+	const scheduleIceRecovery = useCallback(
+		(peerId: string, delayMs: number) => {
+			const peer = peersRef.current.get(peerId)
+			if (!peer || peer.recoveryTimer) return
+			peer.recoveryTimer = setTimeout(() => {
+				peer.recoveryTimer = null
+				// A blip that healed itself while the timer ran needs nothing.
+				if (peersRef.current.get(peerId) !== peer) return
+				if (peer.pc.connectionState === 'connected') return
+
+				if (peer.restarts >= MAX_ICE_RESTARTS) {
+					closePeer(peerId)
+					setRebuildTick((tick) => tick + 1)
+					return
+				}
+				peer.restarts++
+				try {
+					peer.pc.setConfiguration({
+						iceServers: iceServersRef.current,
+						bundlePolicy: 'max-bundle',
+						rtcpMuxPolicy: 'require',
+					})
+				} catch {
+					// Not every browser allows reconfiguring a live connection; the restart below is
+					// still worth trying with the servers it already has.
+				}
+				peer.pc.restartIce()
+			}, delayMs)
+		},
+		[closePeer]
+	)
 
 	const getOrCreatePeer = useCallback(
 		(peerId: string) => {
@@ -153,10 +245,22 @@ export function TlaBoardSessionProvider({
 			const selfIdValue = selfIdRef.current
 			if (!selfIdValue) return null
 
-			const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
+			const pc = new RTCPeerConnection({
+				iceServers: iceServersRef.current,
+				// One audio stream on one transport: fewer candidate pairs to check, so the call
+				// connects sooner, and one relay allocation instead of several when it goes through TURN.
+				bundlePolicy: 'max-bundle',
+				rtcpMuxPolicy: 'require',
+				// Gather a candidate before there is anything to negotiate, so the offer carries
+				// candidates rather than waiting on a STUN round trip after it.
+				iceCandidatePoolSize: 1,
+			})
 			// One transceiver up front, so `replaceTrack` can swap the microphone in and out later
 			// without renegotiating. Both sides create it, so the m-line order always matches.
-			const transceiver = pc.addTransceiver('audio', { direction: 'sendrecv' })
+			const transceiver = pc.addTransceiver('audio', {
+				direction: 'sendrecv',
+				sendEncodings: [AUDIO_ENCODING],
+			})
 
 			const audio = document.createElement('audio')
 			audio.autoplay = true
@@ -172,7 +276,11 @@ export function TlaBoardSessionProvider({
 				ignoreOffer: false,
 				// Exactly one side of each pair has to yield on a glare collision; the id comparison
 				// is the cheapest way for both sides to agree on which without another round trip.
+				// Collisions are rare on the first handshake, since only one side opens the
+				// connection — but either side can start an ICE restart, and that is a real one.
 				isPolite: selfIdValue < peerId,
+				restarts: 0,
+				recoveryTimer: null,
 			}
 			peersRef.current.set(peerId, peer)
 
@@ -199,7 +307,20 @@ export function TlaBoardSessionProvider({
 				}
 			}
 			pc.onconnectionstatechange = () => {
-				if (pc.connectionState === 'failed') closePeer(peerId)
+				switch (pc.connectionState) {
+					case 'connected':
+						// The peer is healthy again, so a later failure gets its own full restart budget.
+						peer.restarts = 0
+						clearRecoveryTimer(peer)
+						break
+					case 'disconnected':
+						scheduleIceRecovery(peerId, ICE_RECOVERY_DELAY_MS)
+						break
+					case 'failed':
+						// Terminal for this ICE generation: nothing heals it on its own.
+						scheduleIceRecovery(peerId, 0)
+						break
+				}
 			}
 
 			const track = pipelineRef.current?.getOutputStream().getAudioTracks()[0] ?? null
@@ -207,7 +328,7 @@ export function TlaBoardSessionProvider({
 
 			return peer
 		},
-		[send, closePeer]
+		[send, scheduleIceRecovery]
 	)
 
 	const handleSignal = useCallback(
@@ -283,6 +404,15 @@ export function TlaBoardSessionProvider({
 						break
 					case 'roster':
 						setParticipants(message.participants ?? [])
+						break
+					case 'ice-servers':
+						// Relay credentials for the networks STUN can't connect. They arrive shortly
+						// after the socket opens, which is well before anyone turns a microphone on —
+						// but a peer built in that window is repaired rather than left on STUN.
+						if (Array.isArray(message.iceServers) && message.iceServers.length > 0) {
+							iceServersRef.current = message.iceServers
+							applyIceServers(peersRef.current, message.iceServers)
+						}
 						break
 					case 'signal':
 						handleSignal(message.from, message.payload)
@@ -368,11 +498,13 @@ export function TlaBoardSessionProvider({
 			if (!wanted.has(peerId)) closePeer(peerId)
 		}
 		for (const peerId of wanted) {
-			// Only the impolite side opens the connection, so the pair doesn't race to offer first.
+			// Only one side of the pair opens the connection, so they don't race to offer first.
 			if (peersRef.current.has(peerId) || selfId > peerId) continue
 			getOrCreatePeer(peerId)
 		}
-	}, [participants, selfId, getOrCreatePeer, closePeer])
+		// rebuildTick is what re-runs this after a peer was given up on: the roster is unchanged in
+		// that case, so nothing else here would notice the gap.
+	}, [participants, selfId, rebuildTick, getOrCreatePeer, closePeer])
 
 	// ---------------------------------------------------------------------- microphone
 
@@ -487,6 +619,27 @@ export function TlaBoardSessionProvider({
 	)
 
 	return <BoardSessionContext.Provider value={value}>{children}</BoardSessionContext.Provider>
+}
+
+function applyIceServers(peers: Map<string, PeerConnection>, iceServers: RTCIceServer[]) {
+	for (const peer of peers.values()) {
+		try {
+			peer.pc.setConfiguration({
+				iceServers,
+				bundlePolicy: 'max-bundle',
+				rtcpMuxPolicy: 'require',
+			})
+		} catch {
+			// Reconfiguring a live connection isn't universally supported; the peer keeps the servers
+			// it was built with, and an ICE restart is the next chance to pick these up.
+		}
+	}
+}
+
+function clearRecoveryTimer(peer: PeerConnection) {
+	if (!peer.recoveryTimer) return
+	clearTimeout(peer.recoveryTimer)
+	peer.recoveryTimer = null
 }
 
 function readLocalStorage(key: string): string {
