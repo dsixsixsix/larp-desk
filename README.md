@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="UnoCode" src="./assets/unocode-hero.png" width="600" />
+</p>
+
 <h1 align="center">UnoCode</h1>
 
 <p align="center">
@@ -50,6 +54,13 @@ board are removed from storage on the same schedule, so undo keeps working in th
 ### Voice chat
 
 Talk to the other people on a board over a peer-to-peer connection.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/voice-pipeline-dark.svg" />
+    <img alt="The microphone signal passes through the browser's echo cancellation and noise suppression, then a noise gate built from an AnalyserNode and a GainNode, before reaching the peer mesh, directly or through a TURN relay." src="./assets/voice-pipeline-light.svg" />
+  </picture>
+</p>
 
 - **Push to talk** or **always on**, whichever suits the room
 - A **noise gate** at three levels, with hysteresis and a hold time so it doesn't clip the quiet
@@ -107,6 +118,13 @@ https tunnel when testing with someone on another machine.
 To host it somewhere other than your own machine, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Architecture
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/architecture-dark.svg" />
+    <img alt="A board's contents stay in the browser's IndexedDB. A sync worker durable object per board carries presence and WebRTC signalling, with a TURN relay as fallback. A directory durable object holds accounts, invites, workspaces and boards, and is checked on every connect." src="./assets/architecture-light.svg" />
+  </picture>
+</p>
 
 **Local-first boards.** A board's contents live in the browser's own IndexedDB, keyed by the board
 id. Nothing is uploaded, and nothing is lost when the network is: work stays put until it is
