@@ -27,6 +27,13 @@ There is no sign-up: the only way in is an invite link. Opening one asks for a n
 the name is what appears next to your cursor when someone else is on the board with you, the email
 is what makes a second invite land on the same person. Without a link there is nothing to see.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/screenshots/board-dark.png" />
+    <img alt="A UnoCode board: a title, a row of sticky notes, boxes joined by arrows, and three file cards for a .docx, a .md and a .json." src="./assets/screenshots/board-light.png" />
+  </picture>
+</p>
+
 ## Features
 
 ### Boards and workspaces
@@ -34,12 +41,25 @@ is what makes a second invite land on the same person. Without a link there is n
 Boards are grouped into workspaces, and one administrator creates, renames and deletes both. Each
 board keeps its own document, so switching between them never mixes their contents.
 
+<p align="center">
+  <img alt="The workspace and board switcher: a Workspaces section with the current workspace and a link to mint an invite for it, then the same for Boards." src="./assets/screenshots/switcher.png" width="320" />
+</p>
+
 ### Invites
 
 Access is a link and nothing else. The administrator mints one for a workspace — which carries
 every board in it, including ones added later — or for a single board, and whoever opens it gives
 a name and an email and is in. One person can hold invites to several workspaces and boards, and
 the same email joining twice is the same person, not a second one.
+
+<p align="center">
+  <img alt="The people dialog: one row per person, with the boards they can open as removable chips, and the administrator marked as admin with access to every board." src="./assets/screenshots/people.png" width="760" />
+</p>
+
+The administrator is the exception, because there is no link to send them: they sign in at
+`/admin-login` with the deployment's `UNO_ADMIN_SECRET`, which is a worker secret and not an
+address. Nothing links to that page — the front door shows the invite-only wall to everyone,
+including the administrator, until they have signed in there.
 
 Taking access away takes effect at once: the board leaves their sidebar, its contents are deleted
 from their browser, and if they are on it when it happens, the session and the call they are in end
@@ -62,6 +82,10 @@ Talk to the other people on a board over a peer-to-peer connection.
   </picture>
 </p>
 
+<p align="center">
+  <img alt="Voice chat settings: microphone mode as push to talk or always on, noise suppression at low, medium or high, and an input volume slider." src="./assets/screenshots/voice-settings.png" width="760" />
+</p>
+
 - **Push to talk** or **always on**, whichever suits the room
 - A **noise gate** at three levels, with hysteresis and a hold time so it doesn't clip the quiet
   parts of a sentence, plus an input volume control
@@ -78,6 +102,10 @@ Docs uses, for the same reason: the count matters at a glance, the names only on
 
 Drop a file onto the board and it becomes a card you can open.
 
+<p align="center">
+  <img alt="A .docx open over the board: headings, paragraphs and a table rendered as a page, with preview and edit tabs and a download button." src="./assets/screenshots/document-docx.png" width="860" />
+</p>
+
 | Format  | Viewing                                                 | Editing                                             |
 | ------- | ------------------------------------------------------- | --------------------------------------------------- |
 | `.docx` | Rendered as a page — headings, lists, tables and images | Edit the document in place, download a real `.docx` |
@@ -89,6 +117,12 @@ Drop a file onto the board and it becomes a card you can open.
 
 Images, video and audio get players of their own, and dropping several files at once lays them out
 in a row rather than stacking them in one spot.
+
+### Finding what happened
+
+The search box in the header looks through the text on the board and the files on it at once, and
+picking a result takes the camera to it. Next to it, a log of recent changes — who added, edited or
+deleted what, and when — for the board you are on.
 
 ## Getting started
 
