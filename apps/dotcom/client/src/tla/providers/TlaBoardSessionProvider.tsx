@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useValue } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { getPresenceSessionParam, loadUnoDirectory } from '../utils/unoDirectory'
 import { MicPipeline } from '../utils/voice/micPipeline'
 import { getVoiceSettings } from '../utils/voice/voiceSettings'
 
@@ -138,7 +139,7 @@ interface PeerConnection {
  * Joins the board's live session: a presence roster shared by everyone on the same board id, and
  * the WebRTC mesh those participants use to talk to each other.
  *
- * Board content is not synced — it stays in each client's own IndexedDB (see localBoards.ts). What
+ * Board content is not synced — it stays in each client's own IndexedDB (see unoDirectory.ts). What
  * is shared is who is here and their audio, which is what the header count and the voice chat need
  * and nothing more.
  *
@@ -375,7 +376,10 @@ export function TlaBoardSessionProvider({
 
 		const connect = () => {
 			if (isCancelled) return
-			const url = `${MULTIPLAYER_SERVER}/uno/board/${encodeURIComponent(boardId)}/presence`
+			// The session token rides in the query string because a websocket cannot carry an
+			// Authorization header; the worker checks it against the directory before this reaches
+			// the board's object at all.
+			const url = `${MULTIPLAYER_SERVER}/uno/board/${encodeURIComponent(boardId)}/presence?${getPresenceSessionParam()}`
 			const socket = new WebSocket(url)
 			socketRef.current = socket
 
@@ -432,13 +436,20 @@ export function TlaBoardSessionProvider({
 				reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS)
 			}
 
-			socket.onclose = () => {
+			socket.onclose = (event) => {
 				if (pingTimer) clearInterval(pingTimer)
 				pingTimer = null
 				setIsConnected(false)
 				setSelfId(null)
 				selfIdRef.current = null
 				setParticipants([])
+				// 1008 is the server saying this board is no longer this person's: they were removed
+				// from it, or it was deleted. Reconnecting would only be refused again, so the
+				// directory is reloaded instead, which moves them off the board.
+				if (event.code === 1008) {
+					loadUnoDirectory()
+					return
+				}
 				scheduleReconnect()
 			}
 			socket.onerror = () => socket.close()

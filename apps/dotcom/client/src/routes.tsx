@@ -108,6 +108,8 @@ export function createAppRouter({
 					<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 					<Route path={ROUTES.tlaImport} lazy={() => import('./tla/pages/import')} />
 					<Route path={ROUTES.tlaInvite} lazy={() => import('./tla/pages/invite')} />
+					<Route path={ROUTES.unoJoin} lazy={() => import('./pages/uno-join')} />
+					<Route path={ROUTES.unoAdminLogin} lazy={() => import('./pages/uno-admin-login')} />
 					{/* Legacy room */}
 					<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
 					{/* Legacy readonly */}

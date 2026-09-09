@@ -19,6 +19,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/admin/?$",
   },
   {
+    "reactRouterPattern": "/admin-login",
+    "vercelRouterPattern": "^/admin-login/?$",
+  },
+  {
     "reactRouterPattern": "/admin/:section",
     "vercelRouterPattern": "^/admin/[^/]*/?$",
   },
@@ -41,6 +45,10 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/invite/:token",
     "vercelRouterPattern": "^/invite/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/join/:token",
+    "vercelRouterPattern": "^/join/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/lf",

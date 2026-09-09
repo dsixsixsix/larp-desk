@@ -12,11 +12,11 @@ import {
 	useDialogs,
 	useEditor,
 } from 'tldraw'
+import { useUnoUser } from '../../hooks/useUnoDirectory'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
-import { deleteAllLocalBoards } from '../../utils/localBoards'
+import { resetUnoLocalData, updateUnoOwnName } from '../../utils/unoDirectory'
 import { TlaAudioDeviceSettings, TlaVoiceChatSettings } from '../TlaAudioSettings/TlaAudioSettings'
-import { useLocalIdentity } from '../TlaIdentityGate/TlaIdentityGate'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 import styles from './dialogs.module.css'
 
@@ -34,15 +34,18 @@ const messages = defineMessages({
 	displayName: { defaultMessage: 'Display name' },
 	displayNameHelp: { defaultMessage: 'Shown next to your cursor when you work with other people.' },
 	email: { defaultMessage: 'Email' },
-	emailHelp: { defaultMessage: 'Stored in this browser only. There is no account to sign in to.' },
+	emailHelp: {
+		defaultMessage:
+			'The address you joined with. It is what a second invite is matched on, so it cannot be changed here.',
+	},
 	namePlaceholder: { defaultMessage: 'Your name' },
 	emailPlaceholder: { defaultMessage: 'you@example.com' },
-	resetSession: { defaultMessage: 'Reset local data' },
+	resetSession: { defaultMessage: 'Sign out and delete local data' },
 	resetSessionHelp: {
 		defaultMessage:
-			'Everything you make here lives in this browser, and stays until you clear it. This deletes every board and its contents, and asks for your name again.',
+			'Board contents live in this browser and stay until you clear them. This signs you out and deletes every board you have here. Your invites are unaffected — the same link signs you back in.',
 	},
-	resetSessionConfirm: { defaultMessage: 'Delete every board and start over?' },
+	resetSessionConfirm: { defaultMessage: 'Sign out and delete every board on this machine?' },
 	cancel: { defaultMessage: 'Cancel' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	manageCookiesHelp: {
@@ -51,8 +54,9 @@ const messages = defineMessages({
 })
 
 /**
- * The local equivalent of TlaAccountDialog: the signed-out app has no account record, so name and
- * email live in local storage (see TlaIdentityGate) instead of a signed-in user row.
+ * The local equivalent of TlaAccountDialog. The name and email come from the invite this browser
+ * redeemed (see unoDirectory.ts) rather than from a signed-in account: the name is editable, the
+ * email is the identity two invites are matched on and is not.
  *
  * Laid out as sections down the side rather than one long column — audio devices, voice chat
  * behaviour and "delete everything" have nothing to do with each other, and a single scroll put
@@ -68,34 +72,27 @@ export function TlaLocalAccountDialog({ onClose }: { onClose(): void }) {
 	const dataLbl = useMsg(messages.data)
 
 	const [section, setSection] = useState<SettingsSection>('profile')
-	const [identity, setIdentity] = useLocalIdentity()
-	const [name, setName] = useState(identity?.name ?? '')
-	const [email, setEmail] = useState(identity?.email ?? '')
+	const user = useUnoUser()
+	const [name, setName] = useState(user?.name ?? '')
 
-	// `useLocalIdentity` reads local storage in a layout effect, so the first render always hands
-	// back the default — seeding the fields from it alone leaves them blank for a user who already
-	// has a name saved.
+	// The directory resolves a moment after the first render, so the field is seeded from it when
+	// it arrives rather than from the empty default it had at mount.
 	useEffect(() => {
-		if (!identity) return
-		setName(identity.name)
-		setEmail(identity.email)
-	}, [identity])
+		if (user) setName(user.name)
+	}, [user])
 
 	const handleSave = useCallback(() => {
 		const trimmedName = name.trim()
-		const trimmedEmail = email.trim()
-		// Empty values would leave the local identity unset again, undoing the initial gate.
-		if (!trimmedName || !trimmedEmail) {
+		// An empty name would leave this person nameless on every cursor, so it is simply not saved.
+		if (!trimmedName || !user || trimmedName === user.name) {
 			onClose()
 			return
 		}
-		if (trimmedName !== identity?.name || trimmedEmail !== identity?.email) {
-			setIdentity({ name: trimmedName, email: trimmedEmail })
-			editor.user.updateUserPreferences({ name: trimmedName })
-			trackEvent('change-user-name', { source: 'account-menu' })
-		}
+		updateUnoOwnName(trimmedName)
+		editor.user.updateUserPreferences({ name: trimmedName })
+		trackEvent('change-user-name', { source: 'account-menu' })
 		onClose()
-	}, [editor, name, email, identity, setIdentity, onClose, trackEvent])
+	}, [editor, name, user, onClose, trackEvent])
 
 	const sections: { id: SettingsSection; label: string }[] = [
 		{ id: 'profile', label: profileLbl },
@@ -130,9 +127,8 @@ export function TlaLocalAccountDialog({ onClose }: { onClose(): void }) {
 					{section === 'profile' && (
 						<ProfileSection
 							name={name}
-							email={email}
+							email={user?.email ?? ''}
 							onNameChange={setName}
-							onEmailChange={setEmail}
 							onComplete={handleSave}
 							onCancel={onClose}
 						/>
@@ -184,14 +180,12 @@ function ProfileSection({
 	name,
 	email,
 	onNameChange,
-	onEmailChange,
 	onComplete,
 	onCancel,
 }: {
 	name: string
 	email: string
 	onNameChange(value: string): void
-	onEmailChange(value: string): void
 	onComplete(): void
 	onCancel(): void
 }) {
@@ -237,10 +231,10 @@ function ProfileSection({
 				<input
 					aria-label={emailLbl}
 					type="email"
+					readOnly
 					className={styles.dialogInput}
 					data-testid="tla-local-account-email"
 					value={email}
-					onChange={(e) => onEmailChange(e.target.value)}
 					placeholder={emailPlaceholder}
 				/>
 				<div className={styles.sectionHelp}>{emailHelp}</div>
@@ -250,26 +244,25 @@ function ProfileSection({
 }
 
 /**
- * There is no account to sign out of, so this is the only way out of a local session short of the
- * browser's own clear-site-data — and the only way to be sure work isn't left on a shared machine.
- * Reloading afterwards is what puts the identity gate back up (see TlaIdentityGate).
+ * Signing out, which on a local-first app also means deleting the documents: the boards are on
+ * this disk, and leaving them behind on a shared machine is the thing signing out is for. Reloading
+ * afterwards is what puts the invite wall back up (see TlaIdentityGate).
  */
 function ResetLocalDataSection() {
 	const [isConfirming, setIsConfirming] = useState(false)
-	const [identity, setIdentity] = useLocalIdentity()
+	const user = useUnoUser()
 	const resetLbl = useMsg(messages.resetSession)
 	const helpLbl = useMsg(messages.resetSessionHelp)
 	const confirmLbl = useMsg(messages.resetSessionConfirm)
 	const cancelLbl = useMsg(messages.cancel)
 
-	const handleReset = useCallback(() => {
-		deleteAllLocalBoards()
-		setIdentity(null)
+	const handleReset = useCallback(async () => {
+		await resetUnoLocalData()
 		window.location.reload()
-	}, [setIdentity])
+	}, [])
 
-	// The section is only meaningful once there's a local identity to clear.
-	if (!identity) return null
+	// Nothing to sign out of until the directory has resolved.
+	if (!user) return null
 
 	return (
 		<div className={styles.section}>

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { Editor, TLAsset, TLShape, useEditor } from 'tldraw'
+import { useUnoUser } from '../../hooks/useUnoDirectory'
 import { BOARD_FILE_ASSET_TYPE, TLBoardFileAsset } from '../TlaFile/FileAssetUtil'
 import { FILE_CARD_TYPE } from '../TlaFile/FileCardShapeUtil'
-import { useLocalIdentity } from '../TlaIdentityGate/TlaIdentityGate'
 import { pushActivityLogEntry } from './activityLogState'
 
 function shapeTypeLabel(type: string): string {
@@ -38,7 +38,7 @@ function describeShape(
  */
 export function TlaActivityLogTracker() {
 	const editor = useEditor()
-	const [identity] = useLocalIdentity()
+	const identity = useUnoUser()
 	const user = identity?.name.trim() || null
 
 	useEffect(() => {

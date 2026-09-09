@@ -19,6 +19,13 @@ export const MULTIPLAYER_SERVER =
 		? `${window.location.origin}/api`
 		: process.env.MULTIPLAYER_SERVER.replace(/^http/, 'ws')
 
+/**
+ * The same worker as `MULTIPLAYER_SERVER`, over http rather than ws. The presence socket needs the
+ * ws form and the directory API needs fetch, and in staging and production both are the SPA's own
+ * origin, so one is derived from the other rather than configured twice.
+ */
+export const API_SERVER: string = MULTIPLAYER_SERVER.replace(/^ws/, 'http')
+
 export const ZERO_SERVER =
 	(isStagingEnv || isProductionEnv || isPreviewEnv) && typeof location !== 'undefined'
 		? process.env.ZERO_SERVER

@@ -43,6 +43,8 @@ const ROSTER_BROADCAST_DEBOUNCE_MS = 50
 interface Participant {
 	socket: WebSocket
 	id: string
+	/** The directory user this connection was authorized as; see `evictUser`. */
+	userId: string
 	name: string
 	/** Stable per identity so the same person keeps their colour across reconnects. */
 	color: string
@@ -69,6 +71,11 @@ interface PublicParticipant {
  * Deliberately not a document server — board content stays in each client's own IndexedDB (see
  * localBoards.ts in the client). This object holds no durable storage at all: everything it knows
  * is derived from the sockets currently attached, so an eviction between sessions costs nothing.
+ *
+ * Membership is not checked here: the worker authorizes the session against the directory object
+ * before it forwards the upgrade, and passes the user id it resolved (see the presence route in
+ * worker.ts). What this object does hold is the mapping from that id back to the live sockets, so
+ * the directory can end a session it has just revoked.
  *
  * Message envelopes are `{ type, ... }` JSON both ways. Client → server:
  * - `hello`   `{ name }` — identifies the connection; answered with `welcome`.
@@ -104,6 +111,7 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 		const participant: Participant = {
 			socket: server,
 			id,
+			userId: new URL(request.url).searchParams.get('uid') ?? '',
 			name: 'Anonymous',
 			color: pickColor(id),
 			isSpeaking: false,
@@ -209,6 +217,40 @@ export class UnoBoardPresenceDurableObject extends DurableObject<Environment> {
 		// there is no point resolving a roster entry that is no longer there.
 		if (this.participants.get(participant.id) !== participant) return
 		send(participant.socket, { type: 'ice-servers', iceServers })
+	}
+
+	/**
+	 * Closes every connection this user has on the board, for when their invite is taken away.
+	 *
+	 * Called by the directory object as part of removing a membership, so someone who is on the
+	 * board — and in the voice call — at the moment they are removed leaves it then, rather than
+	 * staying until they happen to reload. Their peers see them drop out of the roster and tear
+	 * down their peer connections, which is what actually ends the audio.
+	 */
+	evictUser(userId: string) {
+		if (!userId) return
+		for (const [id, participant] of [...this.participants]) {
+			if (participant.userId !== userId) continue
+			this.closeParticipant(id, participant, 'Removed from this board')
+		}
+	}
+
+	/** Ends the whole session, for a board that has been deleted. */
+	evictAll() {
+		for (const [id, participant] of [...this.participants]) {
+			this.closeParticipant(id, participant, 'This board is gone')
+		}
+	}
+
+	private closeParticipant(id: string, participant: Participant, reason: string) {
+		try {
+			// 1008 rather than a normal close: the client tells the two apart, and reconnecting to a
+			// board you are no longer on would only fail again (see TlaBoardSessionProvider).
+			participant.socket.close(1008, reason)
+		} catch {
+			// Already gone; removing it from the roster is the part that matters.
+		}
+		this.removeParticipant(id)
 	}
 
 	private removeParticipant(id: string) {

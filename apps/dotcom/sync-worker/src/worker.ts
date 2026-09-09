@@ -55,11 +55,12 @@ import { mcpServer } from './routes/tla/mcpServer'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
+import { getUnoSessionToken, unoDirectoryRoutes } from './routes/uno/unoDirectoryRoutes'
 import { runScheduledStorageGc } from './storageGcRunner'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { writeDataPoint } from './utils/analytics'
-import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
+import { getFileEffectProcessor, getLogger, getUnoDirectory } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
@@ -67,6 +68,7 @@ export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { UnoBoardPresenceDurableObject } from './UnoBoardPresenceDurableObject'
+export { UnoDirectoryDurableObject } from './UnoDirectoryDurableObject'
 // no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
 // staging/prod still have it in their applied-migration history, so removing
 // this export breaks their deploys (see #8124). preview skips both v1 and v10,
@@ -113,17 +115,36 @@ const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	// Live session for a local board: who's on it, and the WebRTC signalling those browsers use to
-	// build a voice mesh. No auth — local boards have no owner, and the board id is the only
-	// capability (see UnoBoardPresenceDurableObject).
-	.get('/uno/board/:boardId/presence', (req, env) => {
+	// The invite-only directory: who has been invited, what they may open, and the admin's own
+	// routes for granting and taking that away. See UnoDirectoryDurableObject.
+	.all('/uno/admin/*', unoDirectoryRoutes.fetch)
+	.all('/uno/invite/*', unoDirectoryRoutes.fetch)
+	.all('/uno/directory', unoDirectoryRoutes.fetch)
+	.all('/uno/signout', unoDirectoryRoutes.fetch)
+	.all('/uno/profile', unoDirectoryRoutes.fetch)
+	// Live session for a board: who's on it, and the WebRTC signalling those browsers use to build
+	// a voice mesh. Authorized against the directory here rather than inside the object, so the
+	// object stays a relay and the membership rules live in one place.
+	.get('/uno/board/:boardId/presence', async (req, env) => {
 		const boardId = req.params.boardId
 		// `idFromName` names an object into existence, so an unchecked id lets a caller conjure as
-		// many of them as they can send requests. Board ids are `uniqueId()`, optionally behind the
-		// `tldraw_document_v3_` prefix, so nothing legitimate needs more than this alphabet.
+		// many of them as they can send requests. Board ids are minted by the directory, so nothing
+		// legitimate needs more than this alphabet.
 		if (!boardId || !/^[A-Za-z0-9_-]{1,128}$/.test(boardId)) return notFound()
+
+		// A websocket cannot carry an Authorization header, so the session token rides in the query
+		// string on this one route.
+		const userId = await getUnoDirectory(env).authorizeBoard(getUnoSessionToken(req), boardId)
+		// Not 403: a board someone has been removed from should look the same to them as one that
+		// was never theirs, and the client treats both as "this board is gone".
+		if (!userId) return notFound()
+
+		// Passed on rather than re-derived inside the object: it holds no directory of its own, and
+		// this is what lets it close the right sockets when a membership is revoked.
+		const url = new URL(req.url)
+		url.searchParams.set('uid', userId)
 		const stub = env.UNO_BOARD_PRESENCE.get(env.UNO_BOARD_PRESENCE.idFromName(boardId))
-		return stub.fetch(req as unknown as Request)
+		return stub.fetch(new Request(url, req as unknown as Request))
 	})
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
 	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.

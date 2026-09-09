@@ -80,6 +80,10 @@ deleted_classes = ["TLPostgresReplicator", "TLUserDurableObject", "TLStatsDurabl
 tag = "v13"
 new_sqlite_classes = ["UnoBoardPresenceDurableObject"]
 
+[[migrations]]
+tag = "v14"
+new_sqlite_classes = ["UnoDirectoryDurableObject"]
+
 # preview workers are fresh deploys, so CF rejects v10's delete-class for
 # TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
 # fully replace the top-level list.
@@ -120,6 +124,10 @@ new_sqlite_classes = ["TLFileEffectProcessor"]
 tag = "v13"
 new_sqlite_classes = ["UnoBoardPresenceDurableObject"]
 
+[[env.preview.migrations]]
+tag = "v14"
+new_sqlite_classes = ["UnoDirectoryDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -138,10 +146,14 @@ compatibility_date = "2025-06-05"
 # falls back to STUN only (see utils/iceServers.ts). That is enough for two machines on the same
 # network and not enough across a VPN. To exercise relaying locally, put the two vars in
 # `apps/dotcom/sync-worker/.dev.vars`, which is gitignored — never in this file, which is committed.
+# UNO_ADMIN_SECRET admits the one admin account (see UnoDirectoryDurableObject). A throwaway value
+# here so local dev has a way in; on every deployed environment it is a wrangler secret
+# (`wrangler secret put UNO_ADMIN_SECRET`) and never a var in this committed file.
 [env.dev.vars]
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
+UNO_ADMIN_SECRET = "dev-admin-secret"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
@@ -243,6 +255,7 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 	{ name = "UNO_BOARD_PRESENCE", class_name = "UnoBoardPresenceDurableObject" },
+	{ name = "UNO_DIRECTORY", class_name = "UnoDirectoryDurableObject" },
 ]
 
 [durable_objects]
@@ -251,6 +264,7 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 	{ name = "UNO_BOARD_PRESENCE", class_name = "UnoBoardPresenceDurableObject" },
+	{ name = "UNO_DIRECTORY", class_name = "UnoDirectoryDurableObject" },
 ]
 
 [env.preview.durable_objects]
@@ -259,6 +273,7 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 	{ name = "UNO_BOARD_PRESENCE", class_name = "UnoBoardPresenceDurableObject" },
+	{ name = "UNO_DIRECTORY", class_name = "UnoDirectoryDurableObject" },
 ]
 
 [env.staging.durable_objects]
@@ -267,6 +282,7 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 	{ name = "UNO_BOARD_PRESENCE", class_name = "UnoBoardPresenceDurableObject" },
+	{ name = "UNO_DIRECTORY", class_name = "UnoDirectoryDurableObject" },
 ]
 
 [env.production.durable_objects]
@@ -275,6 +291,7 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 	{ name = "UNO_BOARD_PRESENCE", class_name = "UnoBoardPresenceDurableObject" },
+	{ name = "UNO_DIRECTORY", class_name = "UnoDirectoryDurableObject" },
 ]
 
 #################### Analytics engine ####################

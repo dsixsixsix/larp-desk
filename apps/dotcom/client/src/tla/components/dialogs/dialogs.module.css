@@ -459,3 +459,84 @@
 	font-size: 12px;
 	color: var(--tl-color-text-3);
 }
+
+/* ---------------------------------------------------- admin member list */
+
+.memberList {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.memberRow {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 10px 12px;
+	border-radius: var(--uno-radius-control);
+	border: 1px solid var(--tl-color-low-border);
+	background-color: var(--tl-color-low);
+}
+
+.memberIdentity {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.memberName {
+	font-weight: 600;
+	color: var(--tl-color-text-0);
+}
+
+.memberEmail {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.memberBadge {
+	font-size: 11px;
+	font-weight: 600;
+	padding: 1px 6px;
+	border-radius: 999px;
+	background-color: var(--uno-color-brand);
+	color: var(--tl-color-selected-contrast);
+}
+
+.memberships {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.membership {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	padding: 2px 4px 2px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--tl-color-low-border);
+	background-color: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+}
+
+.membershipRemove {
+	border: none;
+	background: none;
+	cursor: pointer;
+	padding: 0 4px;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+	line-height: 1;
+}
+
+.membershipRemove:hover {
+	color: var(--tl-color-text-0);
+}
+
+.memberEmptyNote {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}

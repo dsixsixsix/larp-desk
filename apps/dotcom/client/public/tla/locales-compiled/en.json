@@ -105,6 +105,12 @@
       "value": "Auto"
     }
   ],
+  "06f65e2a63": [
+    {
+      "type": 0,
+      "value": "Enter the deployment secret to manage workspaces, boards and people."
+    }
+  ],
   "07b45f61c6": [
     {
       "type": 0,
@@ -189,12 +195,6 @@
     {
       "type": 0,
       "value": "Send feedback"
-    }
-  ],
-  "0fef24d5ea": [
-    {
-      "type": 0,
-      "value": "Copy link to this board"
     }
   ],
   "105b296a83": [
@@ -291,6 +291,12 @@
       "value": "Create file"
     }
   ],
+  "1afa74da05": [
+    {
+      "type": 0,
+      "value": "Design"
+    }
+  ],
   "1c27204723": [
     {
       "type": 0,
@@ -309,6 +315,12 @@
       "value": "Today"
     }
   ],
+  "1e6947ac7f": [
+    {
+      "type": 0,
+      "value": "Secret"
+    }
+  ],
   "1ffd709937": [
     {
       "type": 0,
@@ -319,6 +331,24 @@
     {
       "type": 0,
       "value": "Browsers only allow microphone access over https or on localhost. Open the app on one of those."
+    }
+  ],
+  "20c054a7cd": [
+    {
+      "type": 0,
+      "value": "Sign out and delete every board on this machine?"
+    }
+  ],
+  "21313f76b1": [
+    {
+      "type": 0,
+      "value": "Revoke"
+    }
+  ],
+  "218dda7da8": [
+    {
+      "type": 0,
+      "value": "Could not load. Check your connection."
     }
   ],
   "21f66c9c00": [
@@ -365,6 +395,12 @@
       "value": ". Create a free account to continue."
     }
   ],
+  "25d29dc52a": [
+    {
+      "type": 0,
+      "value": "No workspaces or boards"
+    }
+  ],
   "273b65a875": [
     {
       "type": 0,
@@ -393,10 +429,10 @@
       "value": " commented on your board"
     }
   ],
-  "27a9427cc1": [
+  "28161eb072": [
     {
       "type": 0,
-      "value": "Enter your name and email so your work is attributed to you."
+      "value": "No boards yet"
     }
   ],
   "28d0edd045": [
@@ -409,6 +445,12 @@
     {
       "type": 0,
       "value": "Upload failed"
+    }
+  ],
+  "2a0f54ce1c": [
+    {
+      "type": 0,
+      "value": "Board contents live in this browser and stay until you clear them. This signs you out and deletes every board you have here. Your invites are unaffected — the same link signs you back in."
     }
   ],
   "2a1167f869": [
@@ -483,6 +525,12 @@
       "value": "Microphone"
     }
   ],
+  "2dbd227ae9": [
+    {
+      "type": 0,
+      "value": "That secret is not right."
+    }
+  ],
   "2de510be71": [
     {
       "type": 0,
@@ -537,6 +585,12 @@
       "value": "Higher settings cut more background noise, but can clip the start of quiet speech."
     }
   ],
+  "335782c6d0": [
+    {
+      "type": 0,
+      "value": "The address you joined with. It is what a second invite is matched on, so it cannot be changed here."
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -555,12 +609,6 @@
       "value": "Manage"
     }
   ],
-  "352a772d77": [
-    {
-      "type": 0,
-      "value": "Reset local data"
-    }
-  ],
   "36ee841ed2": [
     {
       "type": 0,
@@ -573,6 +621,12 @@
       "value": "Remove member"
     }
   ],
+  "38eff9dcee": [
+    {
+      "type": 0,
+      "value": "Sign out and delete local data"
+    }
+  ],
   "3a44ce48c3": [
     {
       "type": 0,
@@ -583,6 +637,12 @@
     {
       "type": 0,
       "value": "Create a free account to save your files and collaborate with your teammates."
+    }
+  ],
+  "3aa5513a5d": [
+    {
+      "type": 0,
+      "value": "Checking the link…"
     }
   ],
   "3b0d2f8fda": [
@@ -639,6 +699,12 @@
       "value": "Color theme"
     }
   ],
+  "42bec78183": [
+    {
+      "type": 0,
+      "value": "Remove from the service"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -649,6 +715,12 @@
     {
       "type": 0,
       "value": "Edit the document directly. The copy you download keeps text, headings, lists, tables and images — anything else Word stored (footnotes, comments, page layout) is not carried over."
+    }
+  ],
+  "440e55f6fe": [
+    {
+      "type": 0,
+      "value": "This invite link is no longer valid. Ask for a new one."
     }
   ],
   "4436eeb466": [
@@ -693,6 +765,12 @@
     {
       "type": 0,
       "value": "Accept terms of use"
+    }
+  ],
+  "470bbe11bf": [
+    {
+      "type": 0,
+      "value": "Copy invite link to this workspace"
     }
   ],
   "477df802ca": [
@@ -801,6 +879,16 @@
       "value": " unread"
     }
   ],
+  "54d29586f1": [
+    {
+      "type": 0,
+      "value": "Join "
+    },
+    {
+      "type": 1,
+      "value": "target"
+    }
+  ],
   "554a05155c": [
     {
       "type": 0,
@@ -829,10 +917,16 @@
       "value": "Board name"
     }
   ],
-  "55b890b4cd": [
+  "55f7a47f19": [
     {
       "type": 0,
-      "value": "Everything you make here lives in this browser, and stays until you clear it. This deletes every board and its contents, and asks for your name again."
+      "value": "That address belongs to the administrator, who signs in with a secret instead."
+    }
+  ],
+  "5607fdafc0": [
+    {
+      "type": 0,
+      "value": "Enter your name and email. Your name is what other people on the board see."
     }
   ],
   "5638176be5": [
@@ -845,6 +939,20 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "5789ae6db8": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from every workspace and board, and delete their account?"
     }
   ],
   "5863d63d13": [
@@ -919,6 +1027,12 @@
     {
       "type": 0,
       "value": "Board outline"
+    }
+  ],
+  "5e6b533fa8": [
+    {
+      "type": 0,
+      "value": "Invite links"
     }
   ],
   "5f02f05c74": [
@@ -1088,6 +1202,12 @@
       "value": "This week"
     }
   ],
+  "72f267e457": [
+    {
+      "type": 0,
+      "value": "Administrator sign-in"
+    }
+  ],
   "7408cf0d7b": [
     {
       "type": 0,
@@ -1134,6 +1254,18 @@
     {
       "type": 0,
       "value": "Invalid request."
+    }
+  ],
+  "77f2c6e441": [
+    {
+      "type": 0,
+      "value": "Nobody has accepted an invite yet."
+    }
+  ],
+  "78386ec8f2": [
+    {
+      "type": 0,
+      "value": "People"
     }
   ],
   "78e9815992": [
@@ -1194,6 +1326,12 @@
     {
       "type": 0,
       "value": "Forget file"
+    }
+  ],
+  "80023d4aa4": [
+    {
+      "type": 0,
+      "value": "Could not reach the server. Check your connection and retry."
     }
   ],
   "801ab24683": [
@@ -1326,10 +1464,10 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8d19becea6": [
+  "8c45960fa2": [
     {
       "type": 0,
-      "value": "Delete every board and start over?"
+      "value": "every board"
     }
   ],
   "8eb2c00e96": [
@@ -1492,6 +1630,12 @@
       "value": "jane@example.com"
     }
   ],
+  "9e78c29e81": [
+    {
+      "type": 0,
+      "value": "Revoke this link? People already in keep their access."
+    }
+  ],
   "9e93c98d88": [
     {
       "type": 0,
@@ -1528,12 +1672,6 @@
     {
       "type": 0,
       "value": "."
-    }
-  ],
-  "a0bfb8e59e": [
-    {
-      "type": 0,
-      "value": "Continue"
     }
   ],
   "a0da245992": [
@@ -1578,6 +1716,12 @@
       "value": "Notifications"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Join"
+    }
+  ],
   "a3ab761dcc": [
     {
       "type": 1,
@@ -1610,10 +1754,22 @@
       "value": "Leave"
     }
   ],
+  "a588b1abc5": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
       "value": "Anyone with the link"
+    }
+  ],
+  "a6e821eba2": [
+    {
+      "type": 0,
+      "value": "Copy invite link to this board"
     }
   ],
   "a768caa988": [
@@ -1840,16 +1996,48 @@
       "value": "Display name"
     }
   ],
+  "bd10f51647": [
+    {
+      "type": 0,
+      "value": "Create a workspace to start. Boards live inside workspaces, and invites point at either."
+    }
+  ],
   "bd7a9717d2": [
     {
       "type": 0,
       "value": "Volume"
     }
   ],
-  "bf49a2af93": [
+  "c014460f5a": [
     {
-      "type": 0,
-      "value": "Before you start"
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " use"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " uses"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "c04b545bf3": [
@@ -1890,6 +2078,12 @@
     {
       "type": 0,
       "value": "Unable to publish the file."
+    }
+  ],
+  "c309829083": [
+    {
+      "type": 0,
+      "value": "Could not create a link"
     }
   ],
   "c3bf447eab": [
@@ -2098,6 +2292,12 @@
       "value": "Workspaces"
     }
   ],
+  "d60d126fa1": [
+    {
+      "type": 0,
+      "value": "You are signed in, but nothing has been shared with you yet. Ask for an invite link to a workspace or a board."
+    }
+  ],
   "d638a3344b": [
     {
       "type": 0,
@@ -2156,10 +2356,10 @@
       "value": "Go here to see the content"
     }
   ],
-  "db28b432b4": [
+  "da07745401": [
     {
       "type": 0,
-      "value": "Stored in this browser only. There is no account to sign in to."
+      "value": "Joining…"
     }
   ],
   "dbbebf3c03": [
@@ -2178,6 +2378,12 @@
     {
       "type": 0,
       "value": "Record again"
+    }
+  ],
+  "dd03a502b5": [
+    {
+      "type": 0,
+      "value": "To use UnoCode, ask for an invite link to a workspace or a board. The link is the only way in."
     }
   ],
   "dd4361665d": [
@@ -2214,6 +2420,12 @@
       "value": "OK"
     }
   ],
+  "e193112961": [
+    {
+      "type": 0,
+      "value": "No invite links yet. Create one from the workspace switcher."
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2224,6 +2436,12 @@
     {
       "type": 0,
       "value": "Legal summary"
+    }
+  ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Admin"
     }
   ],
   "e404559826": [
@@ -2514,6 +2732,12 @@
       "value": " to use it here."
     }
   ],
+  "f601159c03": [
+    {
+      "type": 0,
+      "value": "Too many attempts. Sign-in is locked for a while."
+    }
+  ],
   "f6e64631bf": [
     {
       "type": 0,
@@ -2544,6 +2768,28 @@
     {
       "type": 0,
       "value": "Privacy Policy"
+    }
+  ],
+  "fac45dfa27": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from "
+    },
+    {
+      "type": 1,
+      "value": "target"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "fb15c53f22": [

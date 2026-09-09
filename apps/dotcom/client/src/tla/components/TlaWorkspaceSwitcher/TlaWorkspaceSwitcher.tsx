@@ -1,22 +1,19 @@
+import { UnoInviteScope } from '@tldraw/dotcom-shared'
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { TldrawUiIcon, useContainer, useValue } from 'tldraw'
+import { TldrawUiIcon, useContainer } from 'tldraw'
+import { useIsUnoAdmin, useUnoCurrentBoard, useUnoWorkspaces } from '../../hooks/useUnoDirectory'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import {
-	canDeleteBoard,
-	canDeleteWorkspace,
-	createBoard,
-	createWorkspace,
-	deleteBoard,
-	deleteWorkspace,
-	getBoardInviteUrl,
-	getBoardsForWorkspace,
-	getLocalBoardsState,
-	renameBoard,
-	renameWorkspace,
-	switchBoard,
-	switchWorkspace,
-} from '../../utils/localBoards'
+	createUnoBoard,
+	createUnoInviteUrl,
+	createUnoWorkspace,
+	deleteUnoBoard,
+	deleteUnoWorkspace,
+	renameUnoBoard,
+	renameUnoWorkspace,
+	setCurrentBoardId,
+} from '../../utils/unoDirectory'
 import styles from './workspace-switcher.module.css'
 
 const messages = defineMessages({
@@ -30,8 +27,10 @@ const messages = defineMessages({
 	boardNamePlaceholder: { defaultMessage: 'Board name' },
 	create: { defaultMessage: 'Create' },
 	cancel: { defaultMessage: 'Cancel' },
-	copyLink: { defaultMessage: 'Copy link to this board' },
+	inviteToWorkspace: { defaultMessage: 'Copy invite link to this workspace' },
+	inviteToBoard: { defaultMessage: 'Copy invite link to this board' },
 	copiedLink: { defaultMessage: 'Link copied' },
+	inviteFailed: { defaultMessage: 'Could not create a link' },
 	rename: { defaultMessage: 'Rename' },
 	save: { defaultMessage: 'Save' },
 	delete: { defaultMessage: 'Delete' },
@@ -43,10 +42,12 @@ const messages = defineMessages({
 
 /**
  * "Workspace / board" label in the header, right of the board-outline sidebar toggle (see
- * TlaEditorTopPanel). Opens a panel to switch between existing workspaces/boards, rename them,
- * delete them, or create new ones — workspaces and boards are independent local documents; a
- * workspace is just the group a board belongs to, not a container with any other effect on it.
- * Local scratch canvas only.
+ * TlaEditorTopPanel). Opens a panel listing what this person may open, and — for the admin — the
+ * controls to create, rename and delete workspaces and boards, and to mint the invite links that
+ * let anyone else in at all.
+ *
+ * Everyone else gets the same panel without those controls: a workspace is the group a board
+ * belongs to, and the only way into either is a link the admin sent (see unoDirectory.ts).
  */
 export function TlaWorkspaceSwitcher() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -65,13 +66,13 @@ export function TlaWorkspaceSwitcher() {
 	const newBoardLbl = useMsg(messages.newBoard)
 	const workspaceNamePlaceholderLbl = useMsg(messages.workspaceNamePlaceholder)
 	const boardNamePlaceholderLbl = useMsg(messages.boardNamePlaceholder)
+	const inviteWorkspaceLbl = useMsg(messages.inviteToWorkspace)
+	const inviteBoardLbl = useMsg(messages.inviteToBoard)
 
-	const boardsState = useValue('local-boards-state', () => getLocalBoardsState().get(), [])
-	const currentBoard = boardsState.boards.find((b) => b.id === boardsState.currentBoardId)
-	const currentWorkspace = currentBoard
-		? boardsState.workspaces.find((w) => w.id === currentBoard.workspaceId)
-		: undefined
-	const boardsInWorkspace = currentWorkspace ? getBoardsForWorkspace(currentWorkspace.id) : []
+	const workspaces = useUnoWorkspaces()
+	const isAdmin = useIsUnoAdmin()
+	const { board: currentBoard, workspace: currentWorkspace } = useUnoCurrentBoard()
+	const boardsInWorkspace = currentWorkspace?.boards ?? []
 
 	const updatePosition = useCallback(() => {
 		const rect = buttonRef.current?.getBoundingClientRect()
@@ -134,52 +135,66 @@ export function TlaWorkspaceSwitcher() {
 						<Section
 							title={workspacesLbl}
 							testIdPrefix="tla-workspace"
-							items={boardsState.workspaces.map((w) => ({
+							canEdit={isAdmin}
+							items={workspaces.map((w) => ({
 								id: w.id,
 								label: w.name,
 								isCurrent: w.id === currentWorkspace.id,
-								canDelete: canDeleteWorkspace(w.id),
+								// Deleting the workspace you are standing in is fine — the directory
+								// picks the next board — but there has to be one left to move to.
+								canDelete: workspaces.length > 1,
 								deleteConfirm: intl.formatMessage(messages.deleteWorkspaceConfirm, {
 									name: w.name,
 								}),
 							}))}
 							onSelect={(id) => {
-								switchWorkspace(id)
+								const target = workspaces.find((w) => w.id === id)
+								if (target?.boards[0]) setCurrentBoardId(target.boards[0].id)
 								setIsOpen(false)
 							}}
 							onCreate={(name) => {
-								createWorkspace(name)
+								createUnoWorkspace(name)
 								setIsOpen(false)
 							}}
-							onRename={renameWorkspace}
-							onDelete={deleteWorkspace}
+							onRename={renameUnoWorkspace}
+							onDelete={deleteUnoWorkspace}
 							addLabel={newWorkspaceLbl}
 							namePlaceholder={workspaceNamePlaceholderLbl}
 						/>
-						<CopyBoardLinkRow />
+						{isAdmin && (
+							<InviteRow
+								scope="workspace"
+								scopeId={currentWorkspace.id}
+								label={inviteWorkspaceLbl}
+							/>
+						)}
 						<Section
 							title={boardsLbl}
 							testIdPrefix="tla-board"
+							canEdit={isAdmin}
 							items={boardsInWorkspace.map((b) => ({
 								id: b.id,
 								label: b.name,
 								isCurrent: b.id === currentBoard.id,
-								canDelete: canDeleteBoard(b.id),
+								canDelete: boardsInWorkspace.length > 1 || workspaces.length > 1,
 								deleteConfirm: intl.formatMessage(messages.deleteBoardConfirm, { name: b.name }),
 							}))}
 							onSelect={(id) => {
-								switchBoard(id)
+								setCurrentBoardId(id)
 								setIsOpen(false)
 							}}
 							onCreate={(name) => {
-								createBoard(name, currentWorkspace.id)
+								createUnoBoard(currentWorkspace.id, name)
 								setIsOpen(false)
 							}}
-							onRename={renameBoard}
-							onDelete={deleteBoard}
+							onRename={renameUnoBoard}
+							onDelete={deleteUnoBoard}
 							addLabel={newBoardLbl}
 							namePlaceholder={boardNamePlaceholderLbl}
 						/>
+						{isAdmin && (
+							<InviteRow scope="board" scopeId={currentBoard.id} label={inviteBoardLbl} />
+						)}
 					</div>,
 					container
 				)}
@@ -205,6 +220,7 @@ function Section({
 	addLabel,
 	namePlaceholder,
 	testIdPrefix,
+	canEdit,
 }: {
 	title: string
 	items: SectionItem[]
@@ -215,6 +231,8 @@ function Section({
 	addLabel: string
 	namePlaceholder: string
 	testIdPrefix: string
+	/** Only the admin creates, renames and deletes; everyone else gets a list they can switch with. */
+	canEdit: boolean
 }) {
 	const [isCreating, setIsCreating] = useState(false)
 	const [name, setName] = useState('')
@@ -304,20 +322,22 @@ function Section({
 						>
 							<span className={styles.rowLabel}>{item.label}</span>
 						</button>
-						<button
-							type="button"
-							className={styles.rowAction}
-							aria-label={`${renameLbl}: ${item.label}`}
-							title={renameLbl}
-							data-testid={`${testIdPrefix}-rename`}
-							onClick={() => {
-								setConfirmingDeleteId(null)
-								setRenamingId(item.id)
-							}}
-						>
-							<TldrawUiIcon icon="edit" label={renameLbl} small />
-						</button>
-						{item.canDelete && (
+						{canEdit && (
+							<button
+								type="button"
+								className={styles.rowAction}
+								aria-label={`${renameLbl}: ${item.label}`}
+								title={renameLbl}
+								data-testid={`${testIdPrefix}-rename`}
+								onClick={() => {
+									setConfirmingDeleteId(null)
+									setRenamingId(item.id)
+								}}
+							>
+								<TldrawUiIcon icon="edit" label={renameLbl} small />
+							</button>
+						)}
+						{canEdit && item.canDelete && (
 							<button
 								type="button"
 								className={styles.rowAction}
@@ -335,7 +355,7 @@ function Section({
 					</div>
 				)
 			})}
-			{isCreating ? (
+			{!canEdit ? null : isCreating ? (
 				<form className={styles.createForm} onSubmit={handleSubmit}>
 					<input
 						ref={inputRef}
@@ -442,37 +462,56 @@ function NameForm({
 }
 
 /**
- * Shares the board the user is on. What the link carries is the board's id, which is what the
- * live session is keyed on — so whoever opens it lands in the same room for presence and voice.
- * Their canvas starts empty: boards are local-first, and only the session is shared.
+ * Mints a link that lets someone into this workspace or this board, and copies it.
+ *
+ * A new token each time rather than a stable one per target: a link that has spread further than
+ * intended can then be revoked from the admin panel without invalidating the one everyone else
+ * already has. Admin only — an invite is the only way anyone gets in, so it is the one thing an
+ * ordinary member must not be able to hand out.
  */
-function CopyBoardLinkRow() {
-	const [isCopied, setIsCopied] = useState(false)
-	const copyLbl = useMsg(messages.copyLink)
+function InviteRow({
+	scope,
+	scopeId,
+	label,
+}: {
+	scope: UnoInviteScope
+	scopeId: string
+	label: string
+}) {
+	const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
 	const copiedLbl = useMsg(messages.copiedLink)
+	const failedLbl = useMsg(messages.inviteFailed)
 
 	useEffect(() => {
-		if (!isCopied) return
-		const timeout = window.setTimeout(() => setIsCopied(false), 2000)
+		if (state === 'idle') return
+		const timeout = window.setTimeout(() => setState('idle'), 2000)
 		return () => window.clearTimeout(timeout)
-	}, [isCopied])
+	}, [state])
 
 	return (
 		<div className={styles.section}>
 			<button
 				type="button"
 				className={styles.linkRow}
-				data-testid="tla-board-copy-link"
+				data-testid={`tla-invite-${scope}`}
 				onClick={async () => {
+					const url = await createUnoInviteUrl(scope, scopeId)
+					if (!url) {
+						setState('failed')
+						return
+					}
 					try {
-						await navigator.clipboard.writeText(getBoardInviteUrl())
-						setIsCopied(true)
+						await navigator.clipboard.writeText(url)
+						setState('copied')
 					} catch {
-						// Clipboard access can be refused; the row simply doesn't confirm.
+						// Clipboard access can be refused. The link exists either way, so show it
+						// rather than losing it silently.
+						window.prompt(label, url)
+						setState('idle')
 					}
 				}}
 			>
-				{isCopied ? copiedLbl : copyLbl}
+				{state === 'copied' ? copiedLbl : state === 'failed' ? failedLbl : label}
 			</button>
 		</div>
 	)

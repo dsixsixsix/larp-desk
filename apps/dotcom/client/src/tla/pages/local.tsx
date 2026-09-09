@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { assert, getFromSessionStorage, omit, react, useValue } from 'tldraw'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -8,15 +8,19 @@ import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDev
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { TlaIdentityGate, useLocalIdentity } from '../components/TlaIdentityGate/TlaIdentityGate'
+import {
+	TlaEmptyDirectoryGate,
+	TlaNoAccessGate,
+} from '../components/TlaIdentityGate/TlaIdentityGate'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useUnoCurrentBoard, useUnoSession } from '../hooks/useUnoDirectory'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaBoardSessionProvider } from '../providers/TlaBoardSessionProvider'
 import { importFromUrl } from '../utils/importFromUrl'
-import { adoptBoard, getLocalBoardsState } from '../utils/localBoards'
 import { clearRedirectOnSignIn } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
+import { loadUnoDirectory } from '../utils/unoDirectory'
 
 export function Component() {
 	const app = useMaybeApp()
@@ -109,39 +113,56 @@ export function Component() {
 	return null
 }
 
+/**
+ * The app for a signed-in browser: one board at a time, chosen from what the directory says this
+ * person may open (see unoDirectory.ts). Board contents are still local — the id is the tldraw
+ * persistence key — but the id itself now comes from the server, and a board that is not in the
+ * directory cannot be reached by knowing it.
+ */
 function LocalTldraw() {
-	const [identity, setIdentity] = useLocalIdentity()
-	useAdoptBoardFromLink()
-	const currentBoardId = useValue(
-		'local-current-board-id',
-		() => getLocalBoardsState().get().currentBoardId,
-		[]
-	)
+	const session = useUnoSession()
+	const { board } = useUnoCurrentBoard()
 
-	if (!identity) {
+	useEffect(() => {
+		loadUnoDirectory()
+	}, [])
+
+	if (session.status === 'loading') {
+		// Blank rather than a spinner: the directory usually resolves within a frame or two, and a
+		// spinner that appears and vanishes reads as a fault.
+		return <div className="tldraw__editor" />
+	}
+
+	if (session.status === 'signed-out') {
 		return (
 			<TlaAnonLayout>
-				<TlaIdentityGate onDone={setIdentity} />
+				<TlaNoAccessGate />
 			</TlaAnonLayout>
 		)
 	}
+
+	if (!board) {
+		return (
+			<TlaAnonLayout>
+				<TlaEmptyDirectoryGate isAdmin={session.directory.user.isAdmin} />
+			</TlaAnonLayout>
+		)
+	}
+
+	const userName = session.directory.user.name
 
 	return (
 		<TlaAnonLayout>
 			{/* Keyed on the board too: switching boards ends the previous session outright rather
 			    than leaving its websocket and peer connections running in the background. */}
-			<TlaBoardSessionProvider
-				key={currentBoardId}
-				boardId={currentBoardId}
-				userName={identity.name}
-			>
+			<TlaBoardSessionProvider key={board.id} boardId={board.id} userName={userName}>
 				<LocalEditor
-					key={currentBoardId}
+					key={board.id}
 					data-testid="tla-editor"
-					persistenceKey={currentBoardId}
+					persistenceKey={board.id}
 					components={components}
 					onMount={(editor) => {
-						editor.user.updateUserPreferences({ name: identity.name })
+						editor.user.updateUserPreferences({ name: userName })
 						globalEditor.set(editor)
 						const shapes$ = editor.store.query.ids('shape')
 
@@ -162,24 +183,4 @@ function LocalTldraw() {
 			</TlaBoardSessionProvider>
 		</TlaAnonLayout>
 	)
-}
-
-/**
- * Opens the board named in `?board=<id>` — how someone joins from a shared link (see
- * getBoardInviteUrl). The parameter is stripped once it has been used so a later reload doesn't
- * yank the user back to that board after they've navigated elsewhere.
- */
-function useAdoptBoardFromLink() {
-	const [searchParams, setSearchParams] = useSearchParams()
-	const boardId = searchParams.get('board')
-	const boardName = searchParams.get('name')
-
-	useEffect(() => {
-		if (!boardId) return
-		adoptBoard(boardId, boardName ?? undefined)
-		const next = new URLSearchParams(searchParams)
-		next.delete('board')
-		next.delete('name')
-		setSearchParams(next, { replace: true })
-	}, [boardId, boardName, searchParams, setSearchParams])
 }

@@ -6,6 +6,7 @@ import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { UnoBoardPresenceDurableObject } from './UnoBoardPresenceDurableObject'
+import type { UnoDirectoryDurableObject } from './UnoDirectoryDurableObject'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -31,6 +32,11 @@ export interface Environment {
 	TL_FILE_EFFECTS: DurableObjectNamespace<TLFileEffectProcessor>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
 	UNO_BOARD_PRESENCE: DurableObjectNamespace<UnoBoardPresenceDurableObject>
+	UNO_DIRECTORY: DurableObjectNamespace<UnoDirectoryDurableObject>
+
+	// The shared secret that admits the one admin account (see UnoDirectoryDurableObject). Unset
+	// means nobody can sign in as admin, which is the safe direction for a misconfigured deploy.
+	UNO_ADMIN_SECRET?: string
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string

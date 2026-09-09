@@ -6,6 +6,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`wss:`,
 		'blob:',
 		'data:',
+		// The sync worker in local dev. In staging and production it is the app's own origin, so
+		// `'self'` covers it there and only the dev port needs naming (see utils/config.ts).
+		'http://localhost:8787',
 		'http://localhost:8788',
 		'http://localhost:8789',
 		`https://*.tldraw.xyz`,

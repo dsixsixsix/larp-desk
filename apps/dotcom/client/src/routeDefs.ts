@@ -13,6 +13,9 @@ export const ROUTES = {
 	tlaPublish: `/p/:fileSlug`,
 	tlaImport: `/import`,
 	tlaInvite: `/invite/:token`,
+	// The invite-only directory: a link that grants access, and the admin's way in.
+	unoJoin: `/join/:token`,
+	unoAdminLogin: `/admin-login`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',

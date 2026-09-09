@@ -72,3 +72,27 @@
 .submit:active {
 	transform: scale(0.98);
 }
+
+.error {
+	margin: 0;
+	font-size: 12px;
+	color: var(--tl-color-text-error, #e03131);
+}
+
+.hint {
+	margin: 0;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.submit[disabled] {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.target {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--tl-color-text-0);
+}

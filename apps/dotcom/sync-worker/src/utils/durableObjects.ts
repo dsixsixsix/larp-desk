@@ -25,3 +25,11 @@ export function getRoomDurableObject(env: Environment, roomId: string) {
 export function getRoomDurableObjectById(env: Environment, objectId: string) {
 	return env.TLDR_DOC.get(env.TLDR_DOC.idFromString(objectId)) as any as TLFileDurableObject
 }
+
+/**
+ * The one directory object. Named rather than derived from anything, because there is exactly one
+ * account system and every question it answers spans all of it (see UnoDirectoryDurableObject).
+ */
+export function getUnoDirectory(env: Environment) {
+	return env.UNO_DIRECTORY.get(env.UNO_DIRECTORY.idFromName('uno-directory'))
+}

@@ -19,16 +19,28 @@ place, and talk to the people on the board without leaving it. It is built on th
 [tldraw SDK](https://tldraw.dev), which provides the canvas engine — shapes, tools, geometry,
 rendering — while everything above it is specific to this project.
 
-There is no sign-up. On the first visit you give a name and email, both of which stay in your own
-browser; the name is what appears next to your cursor when someone else is on the board with you.
+There is no sign-up: the only way in is an invite link. Opening one asks for a name and an email —
+the name is what appears next to your cursor when someone else is on the board with you, the email
+is what makes a second invite land on the same person. Without a link there is nothing to see.
 
 ## Features
 
 ### Boards and workspaces
 
-Boards are grouped into workspaces and can be created, renamed and deleted. Each board keeps its
-own document, so switching between them never mixes their contents. A board can be shared with a
-link, which drops whoever opens it into the same live session.
+Boards are grouped into workspaces, and one administrator creates, renames and deletes both. Each
+board keeps its own document, so switching between them never mixes their contents.
+
+### Invites
+
+Access is a link and nothing else. The administrator mints one for a workspace — which carries
+every board in it, including ones added later — or for a single board, and whoever opens it gives
+a name and an email and is in. One person can hold invites to several workspaces and boards, and
+the same email joining twice is the same person, not a second one.
+
+Taking access away takes effect at once: the board leaves their sidebar, its contents are deleted
+from their browser, and if they are on it when it happens, the session and the call they are in end
+with it. A link that has spread further than intended can be revoked without disturbing anyone who
+already used it.
 
 Deleting a board is reversible for a week: it leaves the workspace immediately, and a week later
 it and everything stored for it — its document, edit history, thumbnail and uploaded images — are
@@ -99,6 +111,12 @@ To host it somewhere other than your own machine, see [DEPLOYMENT.md](./DEPLOYME
 **Local-first boards.** A board's contents live in the browser's own IndexedDB, keyed by the board
 id. Nothing is uploaded, and nothing is lost when the network is: work stays put until it is
 deleted or the browser's site data is cleared.
+
+**One directory.** What _is_ on the server is the account system: who has been invited, which
+workspaces and boards they may open, and the links that got them there. It is a single Durable
+Object with a SQLite database — no Postgres, no identity provider — and it is what every presence
+socket is checked against, so a board id is no longer a capability. The one administrator account
+is fixed in code and proved with a secret the worker is deployed with.
 
 **A live session per board.** What is shared is who is present and their audio, not the document.
 A Durable Object in the sync worker holds one room per board id: it keeps the roster and relays

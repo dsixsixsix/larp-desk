@@ -12,13 +12,14 @@ more to run.
 
 The app has two modes, and they have very different hosting requirements.
 
-|                              | Standalone                        | Full                                            |
-| ---------------------------- | --------------------------------- | ----------------------------------------------- |
-| Accounts                     | None                              | Clerk                                           |
-| Board storage                | The visitor's own IndexedDB       | IndexedDB, with rows in Postgres                |
-| Sidebar, workspaces, sharing | Absent                            | Present                                         |
-| Voice chat and presence      | Yes                               | Yes                                             |
-| Infrastructure               | Static host + 1 Cloudflare worker | Static host + 4 workers + Postgres + zero-cache |
+|                           | Standalone                        | Full                                            |
+| ------------------------- | --------------------------------- | ----------------------------------------------- |
+| Accounts                  | Invite links, one admin           | Clerk                                           |
+| Board storage             | The visitor's own IndexedDB       | IndexedDB, with rows in Postgres                |
+| Workspaces and membership | One Durable Object with SQLite    | Postgres                                        |
+| Sidebar, sharing          | Absent                            | Present                                         |
+| Voice chat and presence   | Yes                               | Yes                                             |
+| Infrastructure            | Static host + 1 Cloudflare worker | Static host + 4 workers + Postgres + zero-cache |
 
 Standalone is what `VITE_DISABLE_AUTH` selects: `@clerk/clerk-react` is swapped for a shim that
 reports "signed out" (see `apps/dotcom/client/scripts/clerk-signed-out-shim.tsx`), and you get the
@@ -29,16 +30,16 @@ Everything below covers both. Steps that only apply to the full shape are marked
 
 ## What you are deploying
 
-| Component                              | Where it runs                 | What it does                                                                  |
-| -------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------- |
-| `apps/dotcom/client`                   | Any static host               | The SPA. Built with Vite, output in `dist`                                    |
-| `apps/dotcom/sync-worker`              | Cloudflare Workers            | Presence and WebRTC signalling, TURN credentials, board documents, storage GC |
-| `apps/dotcom/asset-upload-worker`      | Cloudflare Workers            | Accepts uploads into R2 **(full only)**                                       |
-| `apps/dotcom/tldrawusercontent-worker` | Cloudflare Workers            | Serves uploads back out of R2 **(full only)**                                 |
-| `apps/dotcom/image-resize-worker`      | Cloudflare Workers            | Resizes images on the way out **(full only)**                                 |
-| `apps/dotcom/zero-cache`               | Fly.io, or any container host | Replicates Postgres to browsers **(full only)**                               |
-| Postgres 16 with `wal2json`            | Anywhere                      | Board, workspace and asset rows **(full only)**                               |
-| coturn                                 | A VM with a public IP         | TURN relay for voice chat                                                     |
+| Component                              | Where it runs                 | What it does                                                                                        |
+| -------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `apps/dotcom/client`                   | Any static host               | The SPA. Built with Vite, output in `dist`                                                          |
+| `apps/dotcom/sync-worker`              | Cloudflare Workers            | Presence and WebRTC signalling, TURN credentials, the invite directory, board documents, storage GC |
+| `apps/dotcom/asset-upload-worker`      | Cloudflare Workers            | Accepts uploads into R2 **(full only)**                                                             |
+| `apps/dotcom/tldrawusercontent-worker` | Cloudflare Workers            | Serves uploads back out of R2 **(full only)**                                                       |
+| `apps/dotcom/image-resize-worker`      | Cloudflare Workers            | Resizes images on the way out **(full only)**                                                       |
+| `apps/dotcom/zero-cache`               | Fly.io, or any container host | Replicates Postgres to browsers **(full only)**                                                     |
+| Postgres 16 with `wal2json`            | Anywhere                      | Board, workspace and asset rows **(full only)**                                                     |
+| coturn                                 | A VM with a public IP         | TURN relay for voice chat                                                                           |
 
 Board contents themselves never reach the server in either shape: they live in the browser's
 IndexedDB. What the backend holds is the roster, the metadata rows, and the uploaded files.
@@ -72,7 +73,8 @@ wrangler r2 bucket create uploads-preview
 
 Durable Objects need no creation step — the migrations in `apps/dotcom/sync-worker/wrangler.toml`
 declare them, and the first deploy applies them. `UnoBoardPresenceDurableObject` (migration `v13`)
-is the one voice chat depends on.
+is the one voice chat depends on, and `UnoDirectoryDurableObject` (`v14`) is the invite directory —
+it holds every account and membership, so it is the one object whose storage must not be dropped.
 
 The rate limiter bindings under `[[env.*.unsafe.bindings]]` are Cloudflare's own rate limiting API.
 The `namespace_id` values are arbitrary per account; keep them distinct per environment, which the
@@ -142,18 +144,38 @@ yarn workspace @tldraw/dotcom-worker exec wrangler deploy --env production
 
 Secrets go in with `wrangler secret put`, never in `wrangler.toml` — that file is committed.
 
-| Secret                                      | Required           | What it is                                                                                           |
-| ------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `TURN_URLS`                                 | For reliable voice | Comma separated relay URLs. Include a `turns:` URL on 443                                            |
-| `TURN_AUTH`                                 | With `TURN_URLS`   | `secret:<shared secret>` for coturn in `--use-auth-secret` mode, or `static:<username>:<credential>` |
-| `STUN_URLS`                                 | No                 | Overrides the default Cloudflare STUN servers                                                        |
-| `ASSET_UPLOAD_SECRET`                       | Full               | Shared with the asset upload worker, which accepts POSTs from nobody else                            |
-| `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY` | Full               | From the Clerk dashboard                                                                             |
-| `BOTCOM_POSTGRES_CONNECTION_STRING`         | Full               | Direct connection                                                                                    |
-| `BOTCOM_POSTGRES_POOLED_CONNECTION_STRING`  | Full               | Through pgbouncer                                                                                    |
-| `SENTRY_DSN`                                | No                 | Error reporting                                                                                      |
+| Secret                                      | Required           | What it is                                                                                              |
+| ------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
+| `UNO_ADMIN_SECRET`                          | Yes                | Admits the one administrator account. Without it nobody can sign in as admin, and nobody can be invited |
+| `TURN_URLS`                                 | For reliable voice | Comma separated relay URLs. Include a `turns:` URL on 443                                               |
+| `TURN_AUTH`                                 | With `TURN_URLS`   | `secret:<shared secret>` for coturn in `--use-auth-secret` mode, or `static:<username>:<credential>`    |
+| `STUN_URLS`                                 | No                 | Overrides the default Cloudflare STUN servers                                                           |
+| `ASSET_UPLOAD_SECRET`                       | Full               | Shared with the asset upload worker, which accepts POSTs from nobody else                               |
+| `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY` | Full               | From the Clerk dashboard                                                                                |
+| `BOTCOM_POSTGRES_CONNECTION_STRING`         | Full               | Direct connection                                                                                       |
+| `BOTCOM_POSTGRES_POOLED_CONNECTION_STRING`  | Full               | Through pgbouncer                                                                                       |
+| `SENTRY_DSN`                                | No                 | Error reporting                                                                                         |
 
-Locally, the same variables go in `apps/dotcom/sync-worker/.dev.vars`, which is gitignored.
+Locally, the same variables go in `apps/dotcom/sync-worker/.dev.vars`, which is gitignored. The one
+exception is `UNO_ADMIN_SECRET`, which has a throwaway value in `wrangler.toml` under `[env.dev.vars]`
+so local dev has a way in; on a deployed environment it must be a secret.
+
+### The administrator, and letting people in
+
+The app is invite-only, and one account hands out the invites. Its name and email are fixed in
+`packages/dotcom-shared/src/unoDirectory.ts` (`Mikhail`, `mpm@unocode.ru`); what proves it is
+`UNO_ADMIN_SECRET`, not the address — anyone can type an email, so the address alone would be no
+check at all. Editing those constants renames the account; the previous row keeps its `isAdmin`
+flag until it is removed, so change them before the first sign-in rather than after.
+
+Sign in at `/admin-login`, create a workspace and a board, then copy an invite link from the
+workspace switcher in the header — one link for a whole workspace, one for a single board. The
+People panel, next to the theme toggle, lists everyone who has joined with the workspaces and
+boards they are in, and is where access is taken away again.
+
+A visitor without an invite sees an "invite only" screen and nothing else. If the secret is lost,
+`wrangler secret put UNO_ADMIN_SECRET` replaces it; existing sessions stay valid, so a lost secret
+locks out new admin sign-ins rather than the running service.
 
 ### Storage GC
 

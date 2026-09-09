@@ -36,6 +36,7 @@ import {
 	TlaAccountButton,
 	TlaLocalAccountButton,
 	TlaThemeToggleButton,
+	TlaUnoAdminButton,
 } from './TlaEditorAccountControls'
 import styles from './top.module.css'
 
@@ -66,14 +67,15 @@ export function TlaEditorTopRightPanel({
 	)
 
 	if (isAnonUser) {
-		// No sharing yet in the no-auth local flow — just the theme toggle and the local
-		// name/email profile button (see TlaIdentityGate / TlaLocalAccountDialog).
+		// Sharing is an invite from the workspace switcher rather than a share menu, so this is the
+		// theme toggle, the profile button, and — for the admin only — the member list.
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<TlaBoardParticipants />
 				<TlaVoiceChatButton />
 				<PeopleMenu />
 				<TlaActivityLogButton />
+				<TlaUnoAdminButton />
 				<TlaThemeToggleButton />
 				<TlaLocalAccountButton />
 			</div>

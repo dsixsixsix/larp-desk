@@ -1,16 +1,18 @@
 import { TldrawUiButton, useDialogs, useEditor, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useIsUnoAdmin, useUnoUser } from '../../hooks/useUnoDirectory'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaAccountDialog } from '../dialogs/TlaAccountDialog'
+import { TlaAdminMembersDialog } from '../dialogs/TlaAdminMembersDialog'
 import { TlaLocalAccountDialog } from '../dialogs/TlaLocalAccountDialog'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { useLocalIdentity } from '../TlaIdentityGate/TlaIdentityGate'
 import styles from './top.module.css'
 
 const messages = defineMessages({
 	account: { defaultMessage: 'Account' },
+	people: { defaultMessage: 'People' },
 	switchToDark: { defaultMessage: 'Switch to dark theme' },
 	switchToLight: { defaultMessage: 'Switch to light theme' },
 })
@@ -78,13 +80,13 @@ export function TlaAccountButton() {
 }
 
 /**
- * The local (no-auth) equivalent of TlaAccountButton: opens TlaLocalAccountDialog to edit the
- * name/email captured by TlaIdentityGate, since there's no signed-in user record to read from.
+ * The local (no-auth) equivalent of TlaAccountButton: opens TlaLocalAccountDialog, which shows the
+ * name and email this browser joined with (see unoDirectory.ts).
  */
 export function TlaLocalAccountButton() {
 	const { addDialog } = useDialogs()
 	const label = useMsg(messages.account)
-	const [identity] = useLocalIdentity()
+	const identity = useUnoUser()
 
 	return (
 		<TldrawUiButton
@@ -99,6 +101,35 @@ export function TlaLocalAccountButton() {
 			}}
 		>
 			<TlaIcon icon="avatar" />
+		</TldrawUiButton>
+	)
+}
+
+/**
+ * The admin's way into the member list: who has been invited, where they can go, and the links
+ * that got them there (see TlaAdminMembersDialog). Absent for everyone else, because there is
+ * nothing behind it they are allowed to see.
+ */
+export function TlaUnoAdminButton() {
+	const { addDialog } = useDialogs()
+	const isAdmin = useIsUnoAdmin()
+	const label = useMsg(messages.people)
+
+	if (!isAdmin) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topRightIconButton}
+			data-testid="tla-admin-people-button"
+			tooltip={label}
+			title={label}
+			aria-label={label}
+			onClick={() => {
+				addDialog({ component: TlaAdminMembersDialog })
+			}}
+		>
+			<TlaIcon icon="group" />
 		</TldrawUiButton>
 	)
 }
