@@ -13,8 +13,14 @@
 		},
 		{
 			"name": "unocode-server",
-			"runtimeExecutable": "yarn",
+			"runtimeExecutable": "env",
 			"runtimeArgs": [
+				"UNO_ADMIN_SECRET=dev-admin-secret",
+				"S3_ENDPOINT=http://localhost:9000",
+				"S3_BUCKET=uploads",
+				"S3_ACCESS_KEY_ID=dev",
+				"S3_SECRET_ACCESS_KEY=devdevdev",
+				"yarn",
 				"workspace",
 				"@tldraw/dotcom-server",
 				"dev"

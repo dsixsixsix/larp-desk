@@ -109,11 +109,14 @@ export default defineConfig((env) => ({
 		),
 		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
 		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
-		'process.env.USER_CONTENT_URL': urlOrLocalFallback(
-			env.mode,
-			process.env.USER_CONTENT_URL,
-			8789
-		),
+		// Assets are served by the same server as everything else, under /uploads. The fallback is
+		// spelled out rather than going through urlOrLocalFallback because that helper builds an
+		// origin, and this one needs a path on it.
+		'process.env.USER_CONTENT_URL': process.env.USER_CONTENT_URL
+			? JSON.stringify(process.env.USER_CONTENT_URL)
+			: env.mode === 'development'
+				? '`http://${location.hostname}:8787/uploads`'
+				: JSON.stringify('http://localhost:8787/uploads'),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		// A monotonic build identifier (epoch ms at build time). Sent as `?v=` on sync websocket
 		// connections so the server can tell how old a client bundle is — parked background tabs

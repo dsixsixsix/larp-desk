@@ -4,6 +4,7 @@ import { unoDirectoryRoutes } from '../directory/routes'
 import { unfurlRoutes } from '../unfurl/routes'
 import { AppContext } from './context'
 import { blockUnknownOrigins, corsify, preflight } from './cors'
+import { getFeatureFlags } from './featureFlags'
 
 /**
  * The whole HTTP surface.
@@ -21,6 +22,8 @@ router
 	// Liveness only: it must not touch the database or storage, so a check that fails means the
 	// process is gone rather than that a dependency is slow.
 	.get('/health', (_request, ctx) => Response.json({ ok: true, presence: ctx.presence.stats() }))
+	// Polled by the client on a timer; see featureFlags.ts for why it is answered rather than dropped.
+	.get('/app/feature-flags', () => getFeatureFlags())
 	.all('*', unoDirectoryRoutes.fetch)
 	.all('*', assetRoutes.fetch)
 	.all('*', unfurlRoutes.fetch)

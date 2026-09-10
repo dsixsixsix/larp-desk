@@ -51,6 +51,9 @@ export interface ServerConfig {
 	/**
 	 * Origins allowed to call this server cross-origin. Same-origin requests never consult it, so
 	 * the ordinary deployment — SPA and API behind one domain — needs nothing here.
+	 *
+	 * Local development is the exception and the reason for the default below: the client's dev
+	 * server is a different origin from this one, so every call it makes is cross-origin.
 	 */
 	allowedOrigins: string[]
 
@@ -67,6 +70,20 @@ export interface ServerConfig {
 	 * and false anywhere the header could be set by the caller — it keys the upload rate limit.
 	 */
 	trustProxy: boolean
+}
+
+/**
+ * The client's dev server and the SDK examples app. Allowed only outside production: in a
+ * deployment the SPA is served from this server's own origin, so nothing legitimate is
+ * cross-origin, and a standing allowance for localhost would let any page a developer happens to
+ * be running talk to a production API from their browser.
+ */
+const DEV_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://localhost:5420']
+
+function readAllowedOrigins(env: NodeJS.ProcessEnv): string[] {
+	const configured = parseList(env.ALLOWED_ORIGINS)
+	if (configured.length > 0) return configured
+	return env.NODE_ENV === 'production' ? [] : DEV_ALLOWED_ORIGINS
 }
 
 function readS3(env: NodeJS.ProcessEnv): S3Config | undefined {
@@ -107,7 +124,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
 		port: parsePort(env.PORT, 8787),
 		adminSecret: env.UNO_ADMIN_SECRET || undefined,
 		databasePath: env.DATABASE_PATH ?? '.data/directory.sqlite',
-		allowedOrigins: parseList(env.ALLOWED_ORIGINS),
+		allowedOrigins: readAllowedOrigins(env),
 		turnUrls: env.TURN_URLS || undefined,
 		turnAuth: env.TURN_AUTH || undefined,
 		stunUrls: env.STUN_URLS || undefined,
