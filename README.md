@@ -57,7 +57,7 @@ the same email joining twice is the same person, not a second one.
 </p>
 
 The administrator is the exception, because there is no link to send them: they sign in at
-`/admin-login` with the deployment's `UNO_ADMIN_SECRET`, which is a worker secret and not an
+`/admin-login` with the deployment's `UNO_ADMIN_SECRET`, which is a deployment secret and not an
 address. Nothing links to that page — the front door shows the invite-only wall to everyone,
 including the administrator, until they have signed in there.
 
@@ -132,18 +132,19 @@ Requires Node `>=22.12.0`. Enable Corepack, then install:
 npm i -g corepack && yarn
 ```
 
-Two processes: the client, and the worker that carries presence and voice signalling.
+Two processes: the client, and the server that carries the directory, presence and voice
+signalling.
 
 ```bash
 yarn workspace dotcom dev
 ```
 
 ```bash
-yarn workspace @tldraw/dotcom-worker dev
+UNO_ADMIN_SECRET=dev-secret yarn workspace @tldraw/dotcom-server dev
 ```
 
-The app is then at [localhost:3000](http://localhost:3000). Both are also in
-`.claude/launch.json` as `unocode-client` and `unocode-sync-worker`.
+The app is then at [localhost:3000](http://localhost:3000), and the server keeps its directory in
+`apps/dotcom/server/.data`. Sign in at `/admin-login` with the secret you set.
 
 Voice chat needs a secure context, which is what browsers require before they hand over a
 microphone. `localhost` counts; a plain `http://` address on the local network does not, so use an
@@ -165,15 +166,16 @@ id. Nothing is uploaded, and nothing is lost when the network is: work stays put
 deleted or the browser's site data is cleared.
 
 **One directory.** What _is_ on the server is the account system: who has been invited, which
-workspaces and boards they may open, and the links that got them there. It is a single Durable
-Object with a SQLite database — no Postgres, no identity provider — and it is what every presence
-socket is checked against, so a board id is no longer a capability. The one administrator account
-is fixed in code and proved with a secret the worker is deployed with.
+workspaces and boards they may open, and the links that got them there. It is one SQLite database
+with a single writer — no Postgres, no identity provider — and it is what every presence socket is
+checked against, so a board id is no longer a capability. The one administrator account is fixed in
+code and proved with a secret the server is deployed with.
 
 **A live session per board.** What is shared is who is present and their audio, not the document.
-A Durable Object in the sync worker holds one room per board id: it keeps the roster and relays
-WebRTC offers, answers and ICE candidates between browsers. Audio then flows peer to peer over a
-mesh, so it never passes through the server.
+The server holds one room per board id, created when the first person joins and dropped when the
+last one leaves: it keeps the roster and relays WebRTC offers, answers and ICE candidates between
+browsers. It stores nothing, so a restart costs a reconnect and no more. Audio flows peer to peer
+over a mesh and never passes through the server at all.
 
 **Getting connected.** Peer to peer is the goal, not a guarantee: symmetric NAT, a firewall that
 drops UDP and most VPNs all need a relay. Each session is handed TURN credentials alongside the
@@ -192,13 +194,15 @@ thresholds rather than one, because a single one chatters on every syllable boun
 
 Built on the tldraw monorepo, so the canvas engine sits alongside the app in one workspace.
 
-| Path                      | What it is                                                          |
-| ------------------------- | ------------------------------------------------------------------- |
-| `apps/dotcom/client`      | The app: boards, presence, voice chat, document viewer and editor   |
-| `apps/dotcom/sync-worker` | Cloudflare worker; hosts the presence and signalling Durable Object |
-| `packages/editor`         | tldraw's canvas engine — geometry, rendering, the editor API        |
-| `packages/tldraw`         | tldraw's default shapes, tools and UI                               |
-| `packages/*`              | The rest of the SDK: store, schema, state, sync, utilities          |
+| Path                      | What it is                                                        |
+| ------------------------- | ----------------------------------------------------------------- |
+| `apps/dotcom/client`      | The app: boards, presence, voice chat, document viewer and editor |
+| `apps/dotcom/server`      | The backend: directory, presence and signalling, asset storage    |
+| `apps/dotcom/sync-worker` | The original Cloudflare implementation, kept for migrating off it |
+| `deploy/`                 | Containers, reverse proxy and relay configuration for hosting it  |
+| `packages/editor`         | tldraw's canvas engine — geometry, rendering, the editor API      |
+| `packages/tldraw`         | tldraw's default shapes, tools and UI                             |
+| `packages/*`              | The rest of the SDK: store, schema, state, sync, utilities        |
 
 Most of the project's own code is under `apps/dotcom/client/src/tla`.
 

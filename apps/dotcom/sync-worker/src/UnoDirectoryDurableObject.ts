@@ -23,6 +23,7 @@ import {
 	deleteWorkspace,
 	ensureAdminUser,
 	ensureUnoDirectoryTables,
+	exportUnoDirectory,
 	getBoardIdsForWorkspace,
 	getDirectoryForUser,
 	getInviteInfo,
@@ -37,6 +38,7 @@ import {
 	setUserName,
 	touchSession,
 	upsertUser,
+	type UnoDirectoryDump,
 } from './unoDirectoryStorage'
 
 /**
@@ -318,6 +320,15 @@ export class UnoDirectoryDurableObject extends DurableObject<Environment> {
 		const lostBoardIds = removeUser(this.sql, userId)
 		await this.evictFrom(lostBoardIds, userId)
 		return listMembers(this.sql)
+	}
+
+	/**
+	 * Every row in the directory, for migrating it off Cloudflare. Admin only, and deliberately not
+	 * paginated: the whole point is one file that can be replayed elsewhere.
+	 */
+	async exportDirectory(sessionToken: string): Promise<UnoDirectoryDump | null> {
+		if (!this.requireAdmin(sessionToken)) return null
+		return exportUnoDirectory(this.sql, Date.now())
 	}
 
 	private startSession(user: UnoDirectoryUser, now: number): UnoSignInResult {

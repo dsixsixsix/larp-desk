@@ -176,6 +176,10 @@ unoDirectoryRoutes
 		)
 		return members ? Response.json(members) : FORBIDDEN()
 	})
+	.get('/uno/admin/export', async (request, env) => {
+		const dump = await getUnoDirectory(env).exportDirectory(sessionToken(request))
+		return dump ? Response.json(dump) : FORBIDDEN()
+	})
 	.post('/uno/admin/users/remove', async (request, env) => {
 		const body = await readJson(request)
 		const userId = str(body.userId)

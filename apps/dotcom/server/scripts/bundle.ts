@@ -11,8 +11,10 @@ import { build } from 'esbuild'
  * `platform: 'node'`.
  */
 await build({
-	entryPoints: ['src/index.ts'],
-	outfile: 'dist/index.js',
+	// The server, plus the one-shot migration command — bundled together so the image can run the
+	// import without the repository.
+	entryPoints: { index: 'src/index.ts', 'import-directory': 'src/cli/importDirectory.ts' },
+	outdir: 'dist',
 	bundle: true,
 	platform: 'node',
 	// The runtime image pins Node 24, which is also the floor for unflagged node:sqlite.

@@ -136,3 +136,6 @@ skills/pr-walkthrough/video/dist
 skills/pr-walkthrough/video/public/audio-*
 skills/pr-walkthrough/video/public/manifest.json
 todo.md
+
+# the self-hosted server's local dev directory database
+apps/dotcom/server/.data

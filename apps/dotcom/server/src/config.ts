@@ -41,7 +41,11 @@ export interface ServerConfig {
 	/** Admits the one administrator account. Unset means nobody can sign in as admin. */
 	adminSecret: string | undefined
 
-	/** Where the directory's SQLite file lives. Must be on a volume that survives a restart. */
+	/**
+	 * Where the directory's SQLite file lives. On a deployment this must be a volume that survives a
+	 * restart; the default is a local path so `yarn dev` works without one, and the runtime image
+	 * overrides it to the mounted `/data`.
+	 */
 	databasePath: string
 
 	/**
@@ -102,7 +106,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
 		host: env.HOST ?? '0.0.0.0',
 		port: parsePort(env.PORT, 8787),
 		adminSecret: env.UNO_ADMIN_SECRET || undefined,
-		databasePath: env.DATABASE_PATH ?? '/data/directory.sqlite',
+		databasePath: env.DATABASE_PATH ?? '.data/directory.sqlite',
 		allowedOrigins: parseList(env.ALLOWED_ORIGINS),
 		turnUrls: env.TURN_URLS || undefined,
 		turnAuth: env.TURN_AUTH || undefined,

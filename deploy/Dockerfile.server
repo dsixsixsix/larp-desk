@@ -31,6 +31,8 @@ RUN mkdir -p /data && chown node:node /data
 VOLUME /data
 
 COPY --from=builder /repo/apps/dotcom/server/dist/index.js ./index.js
+# The one-shot directory migration command; see the migration section of DEPLOYMENT.md.
+COPY --from=builder /repo/apps/dotcom/server/dist/import-directory.js ./import-directory.js
 
 ENV NODE_ENV=production
 ENV DATABASE_PATH=/data/directory.sqlite

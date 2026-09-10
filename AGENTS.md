@@ -31,8 +31,10 @@ Core packages:
 The app:
 
 - `apps/dotcom/client` - the UnoCode app: boards, presence, voice chat, document viewer and editor
-- `apps/dotcom/sync-worker` - Cloudflare worker; hosts the presence and WebRTC signalling durable object
+- `apps/dotcom/server` - the self-hosted backend: invite directory, presence and WebRTC signalling, asset storage. This is what deployments run
+- `apps/dotcom/sync-worker` - the original Cloudflare implementation. Kept for the directory export that migrates off it; not part of a self-hosted deployment
 - `apps/dotcom/*-worker` - the remaining Cloudflare workers (assets, image resizing)
+- `deploy/` - Dockerfiles, Compose file, Caddy and coturn configuration
 
 Most of the project's own code is under `apps/dotcom/client/src/tla`.
 
