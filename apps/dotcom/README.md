@@ -6,11 +6,13 @@ Two processes: the client, and the server that carries the directory, presence a
 signalling. From the repo root:
 
 ```bash
-yarn dev
+UNO_ADMIN_SECRET=dev-secret yarn dev
 ```
 
-That runs both. To start them separately — which is what you want when only one of them is being
-worked on:
+That runs both. The secret is what admits the administrator, and it is passed in rather than
+committed anywhere — without one the server starts, says so, and lets nobody sign in.
+
+To start them separately, which is what you want when only one of them is being worked on:
 
 ```bash
 yarn workspace dotcom dev
