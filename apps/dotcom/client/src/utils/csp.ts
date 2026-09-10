@@ -72,8 +72,39 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }
 
+/**
+ * The origins a self-hosted deployment serves its own backend from.
+ *
+ * Same-origin is the ordinary arrangement and `'self'` already covers it. This is for the
+ * deployment that splits them — object storage on its own domain, say — where the upload `fetch`
+ * is cross-origin and would otherwise be refused by `connect-src` with nothing in the network tab
+ * to explain it.
+ */
+function configuredBackendOrigins(): string[] {
+	const origins = new Set<string>()
+	for (const value of [process.env.MULTIPLAYER_SERVER, process.env.USER_CONTENT_URL]) {
+		if (!value) continue
+		try {
+			origins.add(new URL(value).origin)
+		} catch {
+			// Not a URL we can read an origin from. The build validates these separately; a bad value
+			// is not this function's to report.
+		}
+	}
+	return [...origins]
+}
+
+for (const directive of ['connect-src', 'img-src', 'media-src'] as const) {
+	for (const origin of configuredBackendOrigins()) {
+		if (!cspDirectives[directive].includes(origin)) cspDirectives[directive].push(origin)
+	}
+}
+
 export const csp = Object.keys(cspDirectives)
-	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
+	// An empty directive is not merely useless: `report-uri` with no value is a parse error for the
+	// whole policy in some browsers, and it is empty whenever no Sentry report URI is configured.
+	.filter((directive) => cspDirectives[directive].some((value) => value !== ''))
+	.map((directive) => `${directive} ${cspDirectives[directive].filter(Boolean).join(' ')}`)
 	.join('; ')
 
 export const cspDev = Object.keys(cspDirectives)
