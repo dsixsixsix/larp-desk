@@ -31,10 +31,13 @@ Core packages:
 The app:
 
 - `apps/dotcom/client` - the UnoCode app: boards, presence, voice chat, document viewer and editor
-- `apps/dotcom/server` - the self-hosted backend: invite directory, presence and WebRTC signalling, asset storage. This is what deployments run
-- `apps/dotcom/sync-worker` - the original Cloudflare implementation. Kept for the directory export that migrates off it; not part of a self-hosted deployment
-- `apps/dotcom/*-worker` - the remaining Cloudflare workers (assets, image resizing)
+- `apps/dotcom/server` - the backend: invite directory, presence and WebRTC signalling, asset storage
 - `deploy/` - Dockerfiles, Compose file, Caddy and coturn configuration
+
+The app was built on Cloudflare Workers and no longer is. There are no workers, no Durable Objects
+and no wrangler config in the tree; the backend is a Node service and the deployment is containers.
+The full shape it also once had — Clerk accounts, Postgres, zero-cache — went with them, so the
+client's code for it (the sidebar, sharing, `TldrawApp`) is present but has no server behind it.
 
 Most of the project's own code is under `apps/dotcom/client/src/tla`.
 
@@ -128,7 +131,7 @@ Store and schema:
 - Use `packages/editor` for core editor primitives, geometry, managers, and UI-free behavior.
 - Use `packages/tldraw` for default shapes, default tools, UI, and integration tests that need the full SDK.
 - Use `apps/dotcom/client` for app behavior; most of it lives under `src/tla`.
-- Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
+- Use `apps/dotcom/server` for backend behavior: the directory, presence, assets, link previews.
 
 ## Testing guidance
 

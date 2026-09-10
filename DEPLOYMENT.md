@@ -3,9 +3,9 @@
 How to host UnoCode yourself, on your own infrastructure, with no Cloudflare account.
 
 Everything here covers the standalone shape: invite-only access with one administrator, boards
-stored in each visitor's own browser, presence and voice chat on top. That is the whole of the
-app — the full shape (Clerk accounts, Postgres, zero-cache) is not part of this deployment and its
-Cloudflare workers are not used by it.
+stored in each visitor's own browser, presence and voice chat on top. That is the whole of the app.
+It once also had a full shape — Clerk accounts, Postgres, zero-cache — served by Cloudflare
+Workers; those are gone from the tree, and nothing here needs a Cloudflare account.
 
 ## What you are deploying
 
@@ -144,37 +144,6 @@ A visitor without an invite sees an "invite only" screen and nothing else.
 
 If the secret is lost, replace it in the environment and restart the API. Existing sessions stay
 valid, so a lost secret locks out new admin sign-ins rather than the running service.
-
-## Migrating from the Cloudflare deployment
-
-Skip this for a fresh install. Durable Object storage cannot be copied off Cloudflare any other
-way, so if the old deployment has real accounts and invite links, export them **before** turning it
-off.
-
-Sign in as admin on the old deployment, then:
-
-```bash
-curl -H "authorization: Bearer <admin session token>" \
-  https://old.example.com/api/uno/admin/export > directory.json
-```
-
-Copy the file into the API container and load it:
-
-```bash
-docker compose -f deploy/docker-compose.yml cp directory.json api:/data/directory.json
-docker compose -f deploy/docker-compose.yml exec api node import-directory.js /data/directory.json
-```
-
-Everyone's session tokens, memberships and invite links keep working; nobody has to join again. The
-import refuses to run against a directory that already has accounts in it, because merging two
-would silently produce duplicates for anyone in both.
-
-Board contents are not migrated and do not need to be: they are in each person's own browser and
-were never on the server.
-
-Uploaded assets are not migrated by this. If the old R2 bucket holds files that boards still point
-at, copy them across with `rclone` before switching the domain over — the URLs are the same paths
-under the new origin.
 
 ## Verifying a deploy
 

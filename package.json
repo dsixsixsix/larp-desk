@@ -36,10 +36,8 @@
 		"clean": "internal/scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/client' --filter='apps/dotcom/sync-worker'",
-		"dev-app": "process-compose -f apps/dotcom/process-compose.yaml up",
-		"dev-app:clean": "docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down --volumes && rm -f /tmp/tldraw-dotcom-zero-dev.db /tmp/tldraw-dotcom-zero-dev.db-shm /tmp/tldraw-dotcom-zero-dev.db-wal && rm -rf apps/dotcom/sync-worker/.wrangler/state-dev apps/dotcom/zero-cache/.schema.js",
-		"dev-app:doctor": "process-compose -f apps/dotcom/process-compose.yaml process list",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/client' --filter='apps/dotcom/server'",
+		"dev-app": "lazy run dev --filter='apps/dotcom/client'",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom/client'",
 		"build-types": "lazy inherit",
@@ -131,12 +129,7 @@
 		"enableScripts is false in .yarnrc.yml, so dependency build/install scripts don't run",
 		"unless allowlisted here with built: true. Add an entry when introducing a native or",
 		"binary-downloading dependency — Yarn silently skips unlisted scripts, so a missing entry",
-		"surfaces as a runtime/build failure, not an install error. See AGENTS.md.",
-		"",
-		"workerd stays built: false: its postinstall runs the native binary to self-check it, which",
-		"fails on CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping",
-		"the build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
-		"binary normally on developer machines."
+		"surfaces as a runtime/build failure, not an install error. See AGENTS.md."
 	],
 	"dependenciesMeta": {
 		"@rocicorp/zero-sqlite3": {
@@ -171,9 +164,6 @@
 		},
 		"sqlite3": {
 			"built": true
-		},
-		"workerd": {
-			"built": false
 		}
 	},
 	"resolutions": {

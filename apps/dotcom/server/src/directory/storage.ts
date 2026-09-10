@@ -606,35 +606,3 @@ export function listInvites(sql: UnoDirectorySql): UnoInviteSummary[] {
 		]
 	})
 }
-
-/** The tables a dump carries, in the order the import has to insert them. */
-export const UNO_DIRECTORY_TABLES = [
-	'uno_users',
-	'uno_workspaces',
-	'uno_boards',
-	'uno_workspace_members',
-	'uno_board_members',
-	'uno_invites',
-	'uno_sessions',
-] as const
-
-export interface UnoDirectoryDump {
-	version: 1
-	exportedAt: number
-	tables: Record<string, unknown[]>
-}
-
-/**
- * Every row in the directory, for moving it somewhere else.
- *
- * Durable Object storage cannot be copied off Cloudflare any other way — there is no export, and
- * the object is only reachable through code running inside it. Without this, migrating away means
- * everyone joining again from new invite links.
- */
-export function exportUnoDirectory(sql: UnoDirectorySql, now: number): UnoDirectoryDump {
-	const tables: Record<string, unknown[]> = {}
-	for (const table of UNO_DIRECTORY_TABLES) {
-		tables[table] = rows(sql, `SELECT * FROM ${table}`)
-	}
-	return { version: 1, exportedAt: now, tables }
-}

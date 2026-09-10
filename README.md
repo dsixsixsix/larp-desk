@@ -194,15 +194,14 @@ thresholds rather than one, because a single one chatters on every syllable boun
 
 Built on the tldraw monorepo, so the canvas engine sits alongside the app in one workspace.
 
-| Path                      | What it is                                                        |
-| ------------------------- | ----------------------------------------------------------------- |
-| `apps/dotcom/client`      | The app: boards, presence, voice chat, document viewer and editor |
-| `apps/dotcom/server`      | The backend: directory, presence and signalling, asset storage    |
-| `apps/dotcom/sync-worker` | The original Cloudflare implementation, kept for migrating off it |
-| `deploy/`                 | Containers, reverse proxy and relay configuration for hosting it  |
-| `packages/editor`         | tldraw's canvas engine — geometry, rendering, the editor API      |
-| `packages/tldraw`         | tldraw's default shapes, tools and UI                             |
-| `packages/*`              | The rest of the SDK: store, schema, state, sync, utilities        |
+| Path                 | What it is                                                        |
+| -------------------- | ----------------------------------------------------------------- |
+| `apps/dotcom/client` | The app: boards, presence, voice chat, document viewer and editor |
+| `apps/dotcom/server` | The backend: directory, presence and signalling, asset storage    |
+| `deploy/`            | Containers, reverse proxy and relay configuration for hosting it  |
+| `packages/editor`    | tldraw's canvas engine — geometry, rendering, the editor API      |
+| `packages/tldraw`    | tldraw's default shapes, tools and UI                             |
+| `packages/*`         | The rest of the SDK: store, schema, state, sync, utilities        |
 
 Most of the project's own code is under `apps/dotcom/client/src/tla`.
 

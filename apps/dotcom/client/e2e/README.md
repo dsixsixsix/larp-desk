@@ -1,5 +1,13 @@
 # Dotcom E2E conventions
 
+> **These tests do not currently run.** Every spec here targets the full shape — Clerk sign-in,
+> Postgres, zero-cache — and that backend was removed when the app moved off Cloudflare (see
+> DEPLOYMENT.md). The deployment is now the standalone shape: invite-only access, boards in
+> IndexedDB, and the server in `apps/dotcom/server`. Covering it needs a harness built on that
+> server's invite directory rather than on `fixtures/Database.ts` and a live Google sign-in. The
+> specs are kept because the scenarios they describe are still the right ones; the fixtures under
+> them are what has to be rewritten.
+
 Issue #9185 is moving dotcom tests toward user scenarios instead of isolated UI smoke tests. New collaborative dotcom coverage should prefer the scenario fixture in `fixtures/scenario-test.ts`.
 
 ## Scenario tests

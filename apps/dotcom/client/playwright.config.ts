@@ -8,10 +8,11 @@ const scenarioTestMatch = /.*\.scenario\.spec\.ts/
 const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
 
 // Fail fast if the dev stack does not come up: not a single test runs until http://localhost:3000
-// responds, so a stuck server otherwise burns CI minutes. process-compose brings up postgres ->
-// migrate -> zero-cache -> workers -> client (see apps/dotcom/process-compose.yaml); it should boot
-// well within this. If a CI cold start ever legitimately needs longer, raise this rather than
-// reverting to a multi-minute stuck wait.
+// responds, so a stuck server otherwise burns CI minutes.
+//
+// The stack this waited for — postgres, zero-cache and the Cloudflare workers — no longer exists;
+// see the note at the top of e2e/README.md. `yarn dev-app` now starts the client alone, so the
+// server these specs need is not there and they fail on their first fixture.
 const CI_WEB_SERVER_TIMEOUT_MS = 180_000
 
 /**

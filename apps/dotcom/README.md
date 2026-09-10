@@ -2,33 +2,54 @@
 
 ## Development
 
-You'll need a clerk publishable and secret key.
-
-In `sync-worker/.dev.vars`, set `CLERK_PUBLISHABLE_KEY` & `CLERK_SECRET_KEY`. In `client/.env.local`, set `VITE_CLERK_PUBLISHABLE_KEY`.
-
-The dev stack is orchestrated by [process-compose](https://github.com/F1bonacc1/process-compose). You don't need to install it — `yarn dev-app` fetches the pinned binary on first use. Run the app from the repo root:
+Two processes: the client, and the server that carries the directory, presence and voice
+signalling. From the repo root:
 
 ```bash
-yarn dev-app
+yarn dev
 ```
 
-This brings up the whole stack — postgres and pgbouncer (in containers), zero-cache, the workers, and the client — as host processes. The ports are fixed, so only one dotcom dev stack can run at a time. The services and their startup order are defined in [`process-compose.yaml`](process-compose.yaml).
+That runs both. To start them separately — which is what you want when only one of them is being
+worked on:
 
-### Working with the stack
+```bash
+yarn workspace dotcom dev
+```
 
-By default `yarn dev-app` opens the process-compose TUI, listing each service with its status, logs, and health.
+```bash
+UNO_ADMIN_SECRET=dev-secret yarn workspace @tldraw/dotcom-server dev
+```
 
-- **Quit:** `F10` or `Ctrl-C`. This stops every process and runs postgres's `docker compose down` — the clean way to stop. Closing the terminal tab instead can leave the postgres container and stray workers running.
-- **Inspect a service:** select it with the arrow keys to see its logs; press `F1` for the full key bindings (start / stop / restart a selected process).
-- **Plain interleaved logs, no TUI:** `PC_DISABLE_TUI=1 yarn dev-app` streams every service's logs to stdout (this is also how it runs in CI).
-- **Drive it from another terminal or a script** — the `process-compose` client connects to the running stack:
+The app is at [localhost:3000](http://localhost:3000). The client's dev server proxies `/api` to
+the server on port 8787, so both have to be up for anything past the invite wall to work.
 
-  ```bash
-  yarn dev-app:doctor                                       # status of every service
-  yarn exec process-compose process logs zero-cache --tail 200
-  yarn exec process-compose process restart sync-worker
-  ```
+Sign in at `/admin-login` with whatever `UNO_ADMIN_SECRET` you set, then create a workspace and a
+board and invite yourself from the workspace switcher.
 
-- **Reset server state:** `yarn dev-app:clean` tears down the postgres container + volume, the zero replica, and wrangler state.
+### Server state
 
-Browser-side state is separate. After starting the stack, visit `http://localhost:3000/dev/reset-local-state` to clear local storage, IndexedDB, caches, service workers, accessible cookies, and Clerk session state for the current origin.
+The directory is a SQLite file at `apps/dotcom/server/.data/directory.sqlite`. Deleting it resets
+every account, invite and board back to empty; there is nothing else server-side to reset.
+
+Assets need object storage, which local dev has none of by default — the server says so at startup
+and refuses uploads with a 503. To exercise that path, run MinIO and point the server at it:
+
+```bash
+docker run -d -p 9000:9000 -e MINIO_ROOT_USER=dev -e MINIO_ROOT_PASSWORD=devdevdev \
+  quay.io/minio/minio server /data
+```
+
+```bash
+S3_ENDPOINT=http://localhost:9000 S3_BUCKET=uploads \
+S3_ACCESS_KEY_ID=dev S3_SECRET_ACCESS_KEY=devdevdev \
+UNO_ADMIN_SECRET=dev-secret yarn workspace @tldraw/dotcom-server dev
+```
+
+Voice needs a secure context: `localhost` counts, a plain `http://` address on the local network
+does not, so testing with someone on another machine needs an https tunnel. Without `TURN_URLS`
+voice is STUN-only, which is enough for two machines on one network and not enough across a VPN.
+
+Browser-side state is separate: visit `http://localhost:3000/dev/reset-local-state` to clear local
+storage, IndexedDB, caches, service workers and accessible cookies for the current origin.
+
+To host this somewhere other than your own machine, see [DEPLOYMENT.md](../../DEPLOYMENT.md).

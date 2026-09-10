@@ -1,6 +1,8 @@
 # @tldraw/dotcom-shared
 
-This is a small packaged used by [apps/dotcom](https://github.com/tldraw/tldraw/tree/main/apps/dotcom) and by [apps/dotcom-worker](https://github.com/tldraw/tldraw/tree/main/apps/dotcom-worker) to share constants across our different apps.
+The types and constants shared between the client (`apps/dotcom/client`) and the server
+(`apps/dotcom/server`) — the invite directory's wire format, route prefixes, and the schema the
+full shape once used.
 
 ## Contribution
 
