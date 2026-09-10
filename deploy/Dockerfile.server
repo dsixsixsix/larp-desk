@@ -1,0 +1,44 @@
+# The API: directory, presence, assets and link previews.
+#
+# Two stages so the runtime image carries no source, no package manager and no build tools — the
+# server is bundled to a single file (apps/dotcom/server/scripts/bundle.ts), and this image is then
+# the Node binary plus that file.
+#
+# Build from the repository root, not from this directory:
+#   docker build -f deploy/Dockerfile.server -t unocode-api .
+
+# Node 24, not the repo's Node 22 floor: node:sqlite is behind --experimental-sqlite before 24, and
+# it is what holds the directory.
+FROM node:24-alpine AS builder
+WORKDIR /repo
+
+RUN corepack enable
+
+# The whole repository, because the install resolves every workspace in it. Copying manifests first
+# would cache the install layer better, but the workspace list is long and easy to let drift; a
+# deploy image is built rarely enough that correctness is the better trade.
+COPY . .
+
+RUN yarn install --immutable
+RUN yarn workspace @tldraw/dotcom-server build
+
+FROM node:24-alpine AS runtime
+WORKDIR /app
+
+# The directory's SQLite file lives here. Mount a volume on it — without one, every restart starts
+# an empty directory and every invite ever issued stops working.
+RUN mkdir -p /data && chown node:node /data
+VOLUME /data
+
+COPY --from=builder /repo/apps/dotcom/server/dist/index.js ./index.js
+
+ENV NODE_ENV=production
+ENV DATABASE_PATH=/data/directory.sqlite
+ENV PORT=8787
+
+USER node
+EXPOSE 8787
+
+# Exec form, so the process is PID 1 and receives SIGTERM directly — the server drains its presence
+# sockets on that signal, and a shell would swallow it.
+CMD ["node", "index.js"]

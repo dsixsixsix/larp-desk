@@ -1,0 +1,109 @@
+# The whole self-hosted stack.
+#
+# Run from the repository root:
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+#
+# Read deploy/.env.example first — every value that has to be yours is listed there.
+
+name: unocode
+
+services:
+  # TLS, the SPA, and the reverse proxy in front of the API.
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in deploy/.env}
+        TLDRAW_LICENSE: ${TLDRAW_LICENSE:-}
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in deploy/.env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      # Certificates and ACME account keys. Without this volume Caddy re-issues on every restart
+      # and will hit Let's Encrypt's rate limit.
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # The directory, presence and asset API. One instance, and only one: presence rosters live in
+  # this process's memory, so a second replica would split each board's participants in two.
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.server
+    environment:
+      UNO_ADMIN_SECRET: ${UNO_ADMIN_SECRET:?set UNO_ADMIN_SECRET in deploy/.env}
+      # Behind Caddy, so the forwarded headers are the only record of the caller's address and the
+      # original scheme. Never set this true on a service exposed directly.
+      TRUST_PROXY: 'true'
+      TURN_URLS: ${TURN_URLS:-}
+      TURN_AUTH: ${TURN_AUTH:-}
+      STUN_URLS: ${STUN_URLS:-}
+      S3_ENDPOINT: http://storage:9000
+      S3_BUCKET: ${S3_BUCKET:-unocode-uploads}
+      S3_ACCESS_KEY_ID: ${STORAGE_ROOT_USER:?set STORAGE_ROOT_USER in deploy/.env}
+      S3_SECRET_ACCESS_KEY: ${STORAGE_ROOT_PASSWORD:?set STORAGE_ROOT_PASSWORD in deploy/.env}
+    volumes:
+      # The invite directory: every account, membership and invite link. This is the one piece of
+      # state whose loss cannot be recovered by restarting anything.
+      - directory-data:/data
+    restart: unless-stopped
+
+  # S3-compatible object storage for the images, audio and video dropped onto boards.
+  storage:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${STORAGE_ROOT_PASSWORD}
+    volumes:
+      - storage-data:/data
+    restart: unless-stopped
+
+  # Creates the bucket on first start, then exits. Runs on every `up`; creating a bucket that is
+  # already there is not an error.
+  storage-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - storage
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://storage:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do sleep 1; done;
+      mc mb --ignore-existing local/$$BUCKET;
+      "
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${STORAGE_ROOT_PASSWORD}
+      BUCKET: ${S3_BUCKET:-unocode-uploads}
+    restart: 'no'
+
+  # The TURN relay. Voice is peer-to-peer and this carries it only when the two browsers cannot
+  # reach each other directly — which is most mobile networks, most VPNs, and any firewall that
+  # drops UDP.
+  #
+  # `network_mode: host` is not a shortcut: a relay allocates from a wide UDP port range, and
+  # publishing sixteen thousand ports through Docker's userland proxy does not work in practice.
+  # A container platform that cannot give this a public address and that range needs coturn moved
+  # to a plain VM — see DEPLOYMENT.md.
+  turn:
+    image: coturn/coturn:latest
+    network_mode: host
+    command: ['-c', '/etc/coturn/turnserver.conf']
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+      # The relay needs the same certificate as the site for turns: on 443. Shared read-only from
+      # Caddy's store; see DEPLOYMENT.md for the path inside it.
+      - caddy-data:/caddy-data:ro
+    restart: unless-stopped
+
+volumes:
+  directory-data:
+  storage-data:
+  caddy-data:
+  caddy-config:

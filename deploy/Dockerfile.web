@@ -1,0 +1,44 @@
+# The SPA and the reverse proxy in front of everything.
+#
+# Build from the repository root:
+#   docker build -f deploy/Dockerfile.web -t unocode-web \
+#     --build-arg PUBLIC_ORIGIN=https://board.example.com .
+#
+# The client reads its backend URLs at BUILD time, not at runtime (see
+# apps/dotcom/client/src/utils/config.ts, which throws when they are missing). So the domain is
+# baked into the image: changing it means rebuilding this image, not editing an environment
+# variable.
+
+FROM node:24-alpine AS builder
+WORKDIR /repo
+
+RUN corepack enable
+COPY . .
+RUN yarn install --immutable
+
+# The origin the app is served from. Everything else is derived from it, because the SPA and the API
+# have to share an origin: in staging and production the client ignores MULTIPLAYER_SERVER and uses
+# `location.origin + '/api'` outright.
+ARG PUBLIC_ORIGIN
+# Removes the tldraw watermark. Optional; see the licensing note in DEPLOYMENT.md.
+ARG TLDRAW_LICENSE=""
+
+ENV SELF_HOSTED=1
+# Swaps @clerk/clerk-react for a shim that reports "signed out", which is what selects the
+# invite-only standalone shape.
+ENV VITE_DISABLE_AUTH=1
+ENV MULTIPLAYER_SERVER=${PUBLIC_ORIGIN}/api
+ENV USER_CONTENT_URL=${PUBLIC_ORIGIN}/api/uploads
+# Required by the build even though the standalone shape never connects to it.
+ENV ZERO_SERVER=${PUBLIC_ORIGIN}/api/zero
+ENV TLDRAW_LICENSE=${TLDRAW_LICENSE}
+
+RUN test -n "${PUBLIC_ORIGIN}" || (echo "PUBLIC_ORIGIN build arg is required" && exit 1)
+RUN yarn workspace dotcom build
+
+FROM caddy:2-alpine AS runtime
+
+COPY --from=builder /repo/apps/dotcom/client/dist /srv
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+
+EXPOSE 80 443

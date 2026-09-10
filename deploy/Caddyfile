@@ -1,0 +1,52 @@
+# The one public entrypoint: TLS, the SPA, and everything under /api.
+#
+# SITE_ADDRESS is the domain, and Caddy obtains a certificate for it on first start — which needs
+# the name to already resolve to this host, and ports 80 and 443 reachable. Set it to `:80` to run
+# without TLS, but read the warning on getUserMedia below before you do.
+
+{
+	# Where ACME failures are reported. Also what stops Caddy prompting on first run.
+	email {$ACME_EMAIL:admin@localhost}
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# Everything the API serves, with the prefix stripped: `handle_path` is what makes
+	# /api/uno/directory arrive as /uno/directory, matching the routes the server registers and the
+	# rewrite the Vercel deployment used. The presence WebSocket upgrade goes through this too;
+	# reverse_proxy handles it without extra configuration.
+	handle_path /api/* {
+		# A little above the server's own 25MB ceiling, so an oversized upload is refused by the
+		# server — with a JSON body saying so — rather than cut off here with an empty 413.
+		request_body {
+			max_size 26MB
+		}
+		reverse_proxy api:8787
+	}
+
+	handle {
+		root * /srv
+
+		# Generated at build time from apps/dotcom/client/src/utils/csp.ts, so the policy cannot
+		# drift from the one the Vercel deployment ships.
+		import /srv/security-headers.caddy
+
+		# Content-hashed filenames, so these can never go stale.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+
+		# index.html itself must not be cached, or a deploy leaves browsers loading the previous
+		# bundle's asset URLs, which the new deploy no longer has.
+		@html path / /index.html
+		header @html Cache-Control "no-cache"
+
+		# Every board URL is a client-side route, so anything that is not a real file is the app.
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Voice needs a secure context: getUserMedia hands out no microphone over plain http, and the
+# failure is silence rather than an error. If you serve this over http for a local trial, expect
+# presence to work and voice not to.
