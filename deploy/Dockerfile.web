@@ -33,6 +33,8 @@ ENV SELF_HOSTED=1
 # Swaps @clerk/clerk-react for a shim that reports "signed out", which is what selects the
 # invite-only standalone shape.
 ENV VITE_DISABLE_AUTH=1
+# main.tsx throws before the shim runs if this is empty. Dummy is enough: the shim ignores it.
+ENV VITE_CLERK_PUBLISHABLE_KEY=pk_test_disabled
 ENV TLDRAW_ENV=production
 ENV MULTIPLAYER_SERVER=${PUBLIC_ORIGIN}/api
 ENV USER_CONTENT_URL=${PUBLIC_ORIGIN}/api/uploads
