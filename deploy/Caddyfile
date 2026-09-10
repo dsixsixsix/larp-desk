@@ -22,7 +22,9 @@
 		request_body {
 			max_size 26MB
 		}
-		reverse_proxy api:8787
+		# Dockhost (and any platform that names the API container itself) sets API_HOST
+		# to that name. Compose leaves it unset, so this stays `api:8787`.
+		reverse_proxy {$API_HOST:api}:8787
 	}
 
 	handle {

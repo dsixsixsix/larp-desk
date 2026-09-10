@@ -16,6 +16,12 @@ RUN corepack enable
 COPY . .
 RUN yarn install --immutable
 
+# CSS and asset files are gitignored, and enableScripts is false, so install does not generate
+# them. Without this, vite dies on `tldraw/tldraw.css` (and next on commenting.css).
+RUN yarn refresh-assets \
+	&& yarn workspace tldraw prebuild \
+	&& yarn workspace @tldraw/commenting prebuild
+
 # The origin the app is served from. Everything else is derived from it, because the SPA and the API
 # have to share an origin: in staging and production the client ignores MULTIPLAYER_SERVER and uses
 # `location.origin + '/api'` outright.
@@ -27,6 +33,7 @@ ENV SELF_HOSTED=1
 # Swaps @clerk/clerk-react for a shim that reports "signed out", which is what selects the
 # invite-only standalone shape.
 ENV VITE_DISABLE_AUTH=1
+ENV TLDRAW_ENV=production
 ENV MULTIPLAYER_SERVER=${PUBLIC_ORIGIN}/api
 ENV USER_CONTENT_URL=${PUBLIC_ORIGIN}/api/uploads
 # Required by the build even though the standalone shape never connects to it.
