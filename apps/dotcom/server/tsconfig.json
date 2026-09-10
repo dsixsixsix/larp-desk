@@ -1,0 +1,16 @@
+{
+	"extends": "../../../internal/config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": {
+		"noEmit": true,
+		"emitDeclarationOnly": false,
+		"moduleResolution": "bundler",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"types": ["node"]
+	},
+	"references": [
+		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/utils" }
+	]
+}
